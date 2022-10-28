@@ -262,7 +262,7 @@
       "timeseriesGuid": "metsci.timelineExample.timeseries01",
       "uiHint": "lines",
       "lineThickness" : 1,
-      "lineColor" : "#C0C0C0",
+      "lineColor" : "#E0E0E0",
       "fragmentGuids": [
         "metsci.timelineExample.fragment01",
         "metsci.timelineExample.fragment02"
@@ -273,8 +273,8 @@
       "uiHint": "lines-and-points",
       "lineThickness" : 2,
       "pointSize" : 5,
-      "lineColor" : "#006600",
-      "pointColor" : "#00FF00",
+      "lineColor" : "#004400",
+      "pointColor" : "#00EE00",
       "fragmentGuids": [
         "metsci.timelineExample.fragment03"
       ]
@@ -283,7 +283,7 @@
       "timeseriesGuid": "metsci.timelineExample.timeseries03",
       "uiHint": "bars",
       "baseline" : 0,
-      "lineColor" : "#6699FF",
+      "lineColor" : "#AA00EE",
       "fragmentGuids": [
         "metsci.timelineExample.fragment03"
       ]
@@ -292,7 +292,7 @@
       "timeseriesGuid": "metsci.timelineExample.timeseries04",
       "uiHint": "area",
       "baseline" : 1000,
-      "lineColor" : "rgba(255,0,0,0.3)",
+      "lineColor" : "rgba(0,0,255,0.3)",
       "fragmentGuids": [
         "metsci.timelineExample.fragment04"
       ]

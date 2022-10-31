@@ -22,10 +22,10 @@ var __extends = this && this.__extends || function() {
 var webglext;
 (function(webglext2) {
   webglext2.GL = WebGLRenderingContext;
-  function hasval(value) {
+  function isNotEmpty(value) {
     return value != null;
   }
-  webglext2.hasval = hasval;
+  webglext2.isNotEmpty = isNotEmpty;
   function isNumber(value) {
     return typeof value === "number";
   }
@@ -104,7 +104,7 @@ var webglext;
     var nextValue = 0;
     return function(obj) {
       var value = obj[keyName];
-      if (!hasval(value)) {
+      if (!isNotEmpty(value)) {
         value = (nextValue++).toString();
         obj[keyName] = value;
       }
@@ -120,16 +120,16 @@ var webglext;
   }
   webglext2.concatLines = concatLines;
   function parseTime_PMILLIS(time_ISO8601) {
-    var m = moment(time_ISO8601, "YYYY-MM-DDTHH:mm:ssZZ", true);
+    var m = moment(time_ISO8601, "HH:mm:ssZZ", true);
     if (m.isValid())
       return m.valueOf();
-    var m = moment(time_ISO8601, "YYYY-MM-DDTHH:mm:ss.SSSZZ", true);
+    var m = moment(time_ISO8601, "HH:mm:ss.SSSZZ", true);
     if (m.isValid())
       return m.valueOf();
-    var m = moment(time_ISO8601, "YYYY-MM-DDTHH:mm:ss.SSZZ", true);
+    var m = moment(time_ISO8601, "HH:mm:ss.SSZZ", true);
     if (m.isValid())
       return m.valueOf();
-    var m = moment(time_ISO8601, "YYYY-MM-DDTHH:mm:ss.SZZ", true);
+    var m = moment(time_ISO8601, "HH:mm:ss.SZZ", true);
     if (m.isValid())
       return m.valueOf();
     throw new Error("Failed to parse time-string: '" + time_ISO8601 + "'");
@@ -672,16 +672,11 @@ var webglext;
   function sameColor(c1, c2) {
     if (c1 === c2)
       return true;
-    if (!webglext2.hasval(c1) || !webglext2.hasval(c2))
+    if (!webglext2.isNotEmpty(c1) || !webglext2.isNotEmpty(c2))
       return false;
     return c1.r === c2.r && c1.g === c2.g && c1.b === c2.b && c1.a === c2.a;
   }
   webglext2.sameColor = sameColor;
-  function parseRgba(rgbaString) {
-    var tokens = rgbaString.split(",", 4);
-    return new Color(parseInt(tokens[0]) / 255, parseInt(tokens[1]) / 255, parseInt(tokens[2]) / 255, parseInt(tokens[3]) / 255);
-  }
-  webglext2.parseRgba = parseRgba;
   webglext2.parseCssColor = function() {
     var canvas = document.createElement("canvas");
     canvas.width = 1;
@@ -699,6 +694,11 @@ var webglext;
       return rgba(R, G, B, A);
     };
   }();
+  function parseRgba(rgbaString) {
+    var tokens = rgbaString.split(",", 4);
+    return new Color(parseInt(tokens[0]) / 255, parseInt(tokens[1]) / 255, parseInt(tokens[2]) / 255, parseInt(tokens[3]) / 255);
+  }
+  webglext2.parseRgba = parseRgba;
   function gray(brightness) {
     return new Color(brightness, brightness, brightness, 1);
   }
@@ -708,10 +708,10 @@ var webglext;
   webglext2.red = rgb(1, 0, 0);
   webglext2.green = rgb(0, 1, 0);
   webglext2.blue = rgb(0, 0, 1);
+  webglext2.periwinkle = rgb(0.561, 0.561, 0.961);
   webglext2.cyan = rgb(0, 1, 1);
   webglext2.magenta = rgb(1, 0, 1);
   webglext2.yellow = rgb(1, 1, 0);
-  webglext2.periwinkle = rgb(0.561, 0.561, 0.961);
 })(webglext || (webglext = {}));
 var webglext;
 (function(webglext2) {
@@ -875,7 +875,7 @@ var webglext;
       return true;
     };
     OrderedSet2.prototype.hasId = function(id) {
-      return webglext2.isString(id) && webglext2.hasval(this._valuesMap[id]);
+      return webglext2.isString(id) && webglext2.isNotEmpty(this._valuesMap[id]);
     };
     OrderedSet2.prototype.hasIds = function(ids) {
       for (var n = 0; n < ids.length; n++) {
@@ -886,14 +886,14 @@ var webglext;
       return true;
     };
     OrderedSet2.prototype.add = function(value, index, moveIfExists) {
-      var index = webglext2.hasval(index) ? index : this._valuesArray.length;
-      if (!webglext2.hasval(moveIfExists))
+      var index = webglext2.isNotEmpty(index) ? index : this._valuesArray.length;
+      if (!webglext2.isNotEmpty(moveIfExists))
         moveIfExists = false;
       this._add(value, index, moveIfExists);
     };
     OrderedSet2.prototype.addAll = function(values, index, moveIfExists) {
-      var index = webglext2.hasval(index) ? index : this._valuesArray.length;
-      if (!webglext2.hasval(moveIfExists))
+      var index = webglext2.isNotEmpty(index) ? index : this._valuesArray.length;
+      if (!webglext2.isNotEmpty(moveIfExists))
         moveIfExists = false;
       for (var n = 0; n < values.length; n++) {
         var actualIndex = this._add(values[n], index, moveIfExists);
@@ -903,7 +903,7 @@ var webglext;
     OrderedSet2.prototype._add = function(value, newIndex, moveIfExists) {
       var id = requireString(this._idOf(value));
       var oldIndex = this._indexes[id];
-      if (!webglext2.hasval(oldIndex)) {
+      if (!webglext2.isNotEmpty(oldIndex)) {
         this._ids.splice(newIndex, 0, id);
         this._valuesArray.splice(newIndex, 0, value);
         this._valuesMap[id] = value;
@@ -944,7 +944,7 @@ var webglext;
     OrderedSet2.prototype.removeId = function(id) {
       if (webglext2.isString(id)) {
         var index = this._indexes[id];
-        if (webglext2.hasval(index)) {
+        if (webglext2.isNotEmpty(index)) {
           this._remove(id, index);
         }
       }
@@ -1100,7 +1100,7 @@ var webglext;
       return webglext2.isString(value) ? this._indexes[value] : void 0;
     };
     OrderedStringSet2.prototype.hasValue = function(value) {
-      return webglext2.isString(value) && webglext2.hasval(this._indexes[value]);
+      return webglext2.isString(value) && webglext2.isNotEmpty(this._indexes[value]);
     };
     OrderedStringSet2.prototype.hasValues = function(values) {
       for (var n = 0; n < values.length; n++) {
@@ -1111,14 +1111,14 @@ var webglext;
       return true;
     };
     OrderedStringSet2.prototype.add = function(value, index, moveIfExists) {
-      var index = webglext2.hasval(index) ? index : this._valuesArray.length;
-      if (!webglext2.hasval(moveIfExists))
+      var index = webglext2.isNotEmpty(index) ? index : this._valuesArray.length;
+      if (!webglext2.isNotEmpty(moveIfExists))
         moveIfExists = false;
       this._add(value, index, moveIfExists);
     };
     OrderedStringSet2.prototype.addAll = function(values, index, moveIfExists) {
-      var index = webglext2.hasval(index) ? index : this._valuesArray.length;
-      if (!webglext2.hasval(moveIfExists))
+      var index = webglext2.isNotEmpty(index) ? index : this._valuesArray.length;
+      if (!webglext2.isNotEmpty(moveIfExists))
         moveIfExists = false;
       for (var n = 0; n < values.length; n++) {
         var actualIndex = this._add(values[n], index, moveIfExists);
@@ -1128,7 +1128,7 @@ var webglext;
     OrderedStringSet2.prototype._add = function(value, newIndex, moveIfExists) {
       requireString(value);
       var oldIndex = this._indexes[value];
-      if (!webglext2.hasval(oldIndex)) {
+      if (!webglext2.isNotEmpty(oldIndex)) {
         this._valuesArray.splice(newIndex, 0, value);
         for (var n = newIndex; n < this._valuesArray.length; n++) {
           this._indexes[this._valuesArray[n]] = n;
@@ -1161,7 +1161,7 @@ var webglext;
     OrderedStringSet2.prototype.removeValue = function(value) {
       if (webglext2.isString(value)) {
         var index = this._indexes[value];
-        if (webglext2.hasval(index)) {
+        if (webglext2.isNotEmpty(index)) {
           this._remove(value, index);
         }
       }
@@ -2313,7 +2313,7 @@ var webglext;
       var glId = webglext2.getObjectId(gl);
       if (this.buffers[glId] === void 0) {
         var buffer = gl.createBuffer();
-        if (!webglext2.hasval(buffer))
+        if (!webglext2.isNotEmpty(buffer))
           throw new Error("Failed to create buffer");
         this.buffers[glId] = new BufferEntry(gl, buffer);
         gl.bindBuffer(target, this.buffers[glId].buffer);
@@ -2353,7 +2353,7 @@ var webglext;
       return this._data.byteLength;
     };
     StaticBufferImpl2.prototype.update = function(gl, target, capacity) {
-      throw new Error("This buffer is static and should never need to be updated");
+      throw new Error("This buffer need not to update because it is STATIC_ROW");
     };
     return StaticBufferImpl2;
   }(AbstractBuffer);
@@ -2466,7 +2466,7 @@ var webglext;
       var glId = webglext2.getObjectId(gl);
       if (this.locations[glId] === void 0) {
         var location = gl.getUniformLocation(this.program._program(gl), this.name);
-        if (!this.optional && !webglext2.hasval(location))
+        if (!this.optional && !webglext2.isNotEmpty(location))
           throw new Error("Uniform '" + this.name + "' not found");
         this.locations[glId] = location;
       }
@@ -2485,7 +2485,7 @@ var webglext;
     }
     Uniform1f2.prototype.setData = function(gl, x) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform1f(location, x);
     };
     return Uniform1f2;
@@ -2501,7 +2501,7 @@ var webglext;
     }
     Uniform2f2.prototype.setData = function(gl, x, y) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform2f(location, x, y);
     };
     return Uniform2f2;
@@ -2517,7 +2517,7 @@ var webglext;
     }
     Uniform3f2.prototype.setData = function(gl, x, y, z) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform3f(location, x, y, z);
     };
     return Uniform3f2;
@@ -2533,7 +2533,7 @@ var webglext;
     }
     Uniform4f2.prototype.setData = function(gl, x, y, z, w) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform4f(location, x, y, z, w);
     };
     return Uniform4f2;
@@ -2552,7 +2552,7 @@ var webglext;
         transpose = false;
       }
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniformMatrix4fv(location, transpose, value);
     };
     return UniformMatrix4f2;
@@ -2568,7 +2568,7 @@ var webglext;
     }
     Uniform1i2.prototype.setData = function(gl, x) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform1i(location, x);
     };
     return Uniform1i2;
@@ -2584,7 +2584,7 @@ var webglext;
     }
     Uniform2i2.prototype.setData = function(gl, x, y) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform2i(location, x, y);
     };
     return Uniform2i2;
@@ -2600,7 +2600,7 @@ var webglext;
     }
     Uniform3i2.prototype.setData = function(gl, x, y, z) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform3i(location, x, y, z);
     };
     return Uniform3i2;
@@ -2616,7 +2616,7 @@ var webglext;
     }
     Uniform4i2.prototype.setData = function(gl, x, y, z, w) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform4i(location, x, y, z, w);
     };
     return Uniform4i2;
@@ -2632,7 +2632,7 @@ var webglext;
     }
     UniformColor2.prototype.setData = function(gl, color) {
       var location = this._location(gl);
-      if (webglext2.hasval(location))
+      if (webglext2.isNotEmpty(location))
         gl.uniform4f(location, color.r, color.g, color.b, color.a);
     };
     return UniformColor2;
@@ -2648,14 +2648,14 @@ var webglext;
     }
     UniformSampler2D2.prototype.setDataAndBind = function(gl, textureUnit, texture) {
       var location = this._location(gl);
-      if (webglext2.hasval(location)) {
+      if (webglext2.isNotEmpty(location)) {
         texture.bind(gl, textureUnit);
         gl.uniform1i(location, textureUnit);
         this.currentTexture = texture;
       }
     };
     UniformSampler2D2.prototype.unbind = function(gl) {
-      if (webglext2.hasval(this.currentTexture)) {
+      if (webglext2.isNotEmpty(this.currentTexture)) {
         this.currentTexture.unbind(gl);
         this.currentTexture = null;
       }
@@ -2720,7 +2720,7 @@ var webglext;
     }
     Texture2.prototype.bind = function(gl, textureUnit) {
       var glId = webglext2.getObjectId(gl);
-      if (webglext2.hasval(this.textures[glId])) {
+      if (webglext2.isNotEmpty(this.textures[glId])) {
         var en = this.textures[glId];
         gl.activeTexture(webglext2.GL.TEXTURE0 + textureUnit);
         gl.bindTexture(en.target, en.texture);
@@ -2728,7 +2728,7 @@ var webglext;
       } else {
         var target = this.helper.target(gl);
         var texture = gl.createTexture();
-        if (!webglext2.hasval(texture))
+        if (!webglext2.isNotEmpty(texture))
           throw new Error("Failed to create texture");
         this.textures[glId] = new TextureEntry(gl, target, texture);
         var en = this.textures[glId];
@@ -2740,7 +2740,7 @@ var webglext;
     };
     Texture2.prototype.unbind = function(gl) {
       var glId = webglext2.getObjectId(gl);
-      if (webglext2.hasval(this.textures[glId])) {
+      if (webglext2.isNotEmpty(this.textures[glId])) {
         var en = this.textures[glId];
         gl.activeTexture(webglext2.GL.TEXTURE0 + en.textureUnit);
         gl.bindTexture(en.target, null);
@@ -2865,11 +2865,11 @@ var webglext;
       this.hViewport = viewport.h;
     };
     TextureRenderer2.prototype.draw = function(gl, texture, xFrac, yFrac, options) {
-      var xAnchor = webglext2.hasval(options) && webglext2.hasval(options.xAnchor) ? options.xAnchor : 0.5;
-      var yAnchor = webglext2.hasval(options) && webglext2.hasval(options.yAnchor) ? options.yAnchor : 0.5;
-      var rotation_CCWRAD = webglext2.hasval(options) && webglext2.hasval(options.rotation_CCWRAD) ? options.rotation_CCWRAD : 0;
-      var width = webglext2.hasval(options) && webglext2.hasval(options.width) ? options.width : texture.w;
-      var height = webglext2.hasval(options) && webglext2.hasval(options.height) ? options.height : texture.h;
+      var xAnchor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.xAnchor) ? options.xAnchor : 0.5;
+      var yAnchor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.yAnchor) ? options.yAnchor : 0.5;
+      var rotation_CCWRAD = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rotation_CCWRAD) ? options.rotation_CCWRAD : 0;
+      var width = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.width) ? options.width : texture.w;
+      var height = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.height) ? options.height : texture.h;
       this.u_XyFrac.setData(gl, webglext2.nearestPixel(xFrac, this.wViewport, xAnchor, texture.w), webglext2.nearestPixel(yFrac, this.hViewport, yAnchor, texture.h));
       this.u_Anchor.setData(gl, xAnchor, yAnchor);
       this.u_Rotation_CCWRAD.setData(gl, rotation_CCWRAD);
@@ -3153,9 +3153,9 @@ var webglext;
       this.hViewport = viewport.h;
     };
     HintedTextRenderer2.prototype.draw = function(gl, hints, xFrac, yFrac, options) {
-      var xAnchor = webglext2.hasval(options) && webglext2.hasval(options.xAnchor) ? options.xAnchor : 0.5;
-      var yAnchor = webglext2.hasval(options) && webglext2.hasval(options.yAnchor) ? options.yAnchor : 0.5;
-      var color = webglext2.hasval(options) && webglext2.hasval(options.color) ? options.color : webglext2.black;
+      var xAnchor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.xAnchor) ? options.xAnchor : 0.5;
+      var yAnchor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.yAnchor) ? options.yAnchor : 0.5;
+      var color = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.color) ? options.color : webglext2.black;
       this.u_XyFrac.setData(gl, webglext2.nearestPixel(xFrac, this.wViewport, xAnchor, hints.w), webglext2.nearestPixel(yFrac, this.hViewport, yAnchor, hints.h));
       this.u_Anchor.setData(gl, xAnchor, yAnchor);
       this.u_ImageSize.setData(gl, hints.w, hints.h);
@@ -3311,7 +3311,7 @@ var webglext;
         var child = this.children.valueAt(c);
         child.pane.updatePrefSizes(child.prefSize);
       }
-      if (webglext2.hasval(this._layout) && webglext2.hasval(this._layout.updatePrefSize)) {
+      if (webglext2.isNotEmpty(this._layout) && webglext2.isNotEmpty(this._layout.updatePrefSize)) {
         this._layout.updatePrefSize(result, this.children.toArray());
       } else {
         result.w = null;
@@ -3322,7 +3322,7 @@ var webglext;
       var viewportChanged = viewport.iStart !== this._viewport.iStart || viewport.iEnd !== this._viewport.iEnd || viewport.jStart !== this._viewport.jStart || viewport.jEnd !== this._viewport.jEnd;
       this._viewport.setBounds(viewport);
       this._scissor.setBounds(scissor);
-      if (webglext2.hasval(this._layout) && webglext2.hasval(this._layout.updateChildViewports)) {
+      if (webglext2.isNotEmpty(this._layout) && webglext2.isNotEmpty(this._layout.updateChildViewports)) {
         this._layout.updateChildViewports(this.children.toArray(), viewport);
         for (var c = 0; c < this.children.length; c++) {
           var child = this.children.valueAt(c);
@@ -3554,10 +3554,10 @@ var webglext;
       var newMouseCursor = null;
       for (var n = 0; n < currentPanes.length; n++) {
         newMouseCursor = currentPanes[n].mouseCursor;
-        if (webglext2.hasval(newMouseCursor))
+        if (webglext2.isNotEmpty(newMouseCursor))
           break;
       }
-      if (!webglext2.hasval(newMouseCursor)) {
+      if (!webglext2.isNotEmpty(newMouseCursor)) {
         newMouseCursor = "default";
       }
       if (newMouseCursor !== currentMouseCursor) {
@@ -3745,15 +3745,15 @@ var webglext;
     var pendingRequestId = null;
     return {
       setContentPane: function(pane) {
-        if (webglext2.hasval(contentPane)) {
+        if (webglext2.isNotEmpty(contentPane)) {
         }
         contentPane = pane;
         attachEventListeners(canvas, contentPane);
       },
       redraw: function() {
-        if (!webglext2.hasval(pendingRequestId)) {
+        if (!webglext2.isNotEmpty(pendingRequestId)) {
           pendingRequestId = window.requestAnimationFrame(function() {
-            if (webglext2.hasval(contentPane)) {
+            if (webglext2.isNotEmpty(contentPane)) {
               var oldPrefSize = { w: contentPrefSize.w, h: contentPrefSize.h };
               contentPane.updatePrefSizes(contentPrefSize);
               contentViewport.setRect(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -3842,7 +3842,7 @@ var webglext;
     Background2.prototype.newPainter = function() {
       var background = this;
       return function(gl, viewport) {
-        if (webglext2.hasval(background.color)) {
+        if (webglext2.isNotEmpty(background.color)) {
           gl.clearColor(background.color.r, background.color.g, background.color.b, background.color.a);
           gl.clear(webglext2.GL.COLOR_BUFFER_BIT);
         }
@@ -4180,7 +4180,7 @@ var webglext;
   function newLabelPainter(label, xFrac, yFrac, xAnchor, yAnchor, rotation_CCWRAD) {
     var textureRenderer = new webglext2.TextureRenderer();
     return function(gl, viewport) {
-      if (webglext2.hasval(label.bgColor)) {
+      if (webglext2.isNotEmpty(label.bgColor)) {
         gl.clearColor(label.bgColor.r, label.bgColor.g, label.bgColor.b, label.bgColor.a);
         gl.clear(webglext2.GL.COLOR_BUFFER_BIT);
       }
@@ -4201,7 +4201,7 @@ var webglext;
       updatePrefSize: function(parentPrefSize, children) {
         if (children.length === 1) {
           var childPrefSize = children[0].prefSize;
-          if (!webglext2.hasval(childPrefSize.h)) {
+          if (!webglext2.isNotEmpty(childPrefSize.h)) {
             throw new Error("Vertical-scroll layout requires child to have a defined pref-height, but its pref-height is " + childPrefSize.h);
           }
           parentPrefSize.w = childPrefSize.w;
@@ -4236,7 +4236,7 @@ var webglext;
   }
   webglext2.newVerticalScrollLayout = newVerticalScrollLayout;
   function newVerticalScrollbar(scrollLayout, drawable, options) {
-    var bgColor = webglext2.hasval(options) && webglext2.hasval(options.bgColor) ? options.bgColor : webglext2.gray(0.9);
+    var bgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.bgColor) ? options.bgColor : webglext2.gray(0.9);
     var scrollbar = new webglext2.Pane(null);
     scrollbar.addPainter(webglext2.newBackgroundPainter(bgColor));
     scrollbar.addPainter(newVerticalScrollbarPainter(scrollLayout, options));
@@ -4245,13 +4245,13 @@ var webglext;
   }
   webglext2.newVerticalScrollbar = newVerticalScrollbar;
   function newVerticalScrollbarPainter(scrollLayout, options) {
-    var fgColor = webglext2.hasval(options) && webglext2.hasval(options.fgColor) ? options.fgColor : webglext2.gray(0.56);
-    var borderColor = webglext2.hasval(options) && webglext2.hasval(options.borderColor) ? options.borderColor : webglext2.gray(0.42);
-    var borderThickness = webglext2.hasval(options) && webglext2.hasval(options.borderThickness) ? options.borderThickness : 1;
-    var borderTop = webglext2.hasval(options) && webglext2.hasval(options.borderTop) ? options.borderTop : true;
-    var borderLeft = webglext2.hasval(options) && webglext2.hasval(options.borderLeft) ? options.borderLeft : false;
-    var borderRight = webglext2.hasval(options) && webglext2.hasval(options.borderRight) ? options.borderRight : false;
-    var borderBottom = webglext2.hasval(options) && webglext2.hasval(options.borderBottom) ? options.borderBottom : true;
+    var fgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.fgColor) ? options.fgColor : webglext2.gray(0.56);
+    var borderColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.borderColor) ? options.borderColor : webglext2.gray(0.42);
+    var borderThickness = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.borderThickness) ? options.borderThickness : 1;
+    var borderTop = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.borderTop) ? options.borderTop : true;
+    var borderLeft = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.borderLeft) ? options.borderLeft : false;
+    var borderRight = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.borderRight) ? options.borderRight : false;
+    var borderBottom = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.borderBottom) ? options.borderBottom : true;
     var program = new webglext2.Program(webglext2.xyFrac_VERTSHADER, webglext2.solid_FRAGSHADER);
     var u_Color = new webglext2.UniformColor(program, "u_Color");
     var a_XyFrac = new webglext2.Attribute(program, "a_XyFrac");
@@ -4304,7 +4304,7 @@ var webglext;
       }
     });
     pane.mouseMove.on(function(ev) {
-      if (webglext2.hasval(grab)) {
+      if (webglext2.isNotEmpty(grab)) {
         scrollLayout.jOffset = jOffset - (grab - ev.j);
         drawable.redraw();
       }
@@ -4319,7 +4319,7 @@ var webglext;
     var pageScrollTimer = null;
     var recentPointerFrac = null;
     scrollbar.mouseDown.on(function(ev) {
-      if (webglext2.isLeftMouseDown(ev.mouseEvent) && !webglext2.hasval(grab)) {
+      if (webglext2.isLeftMouseDown(ev.mouseEvent) && !webglext2.isNotEmpty(grab)) {
         var topFrac = (scrollLayout.hContent - scrollLayout.jOffset) / scrollLayout.hContent;
         var fracExtent = scrollLayout.hVisible / scrollLayout.hContent;
         var pointerFrac = webglext2.yFrac(ev);
@@ -4353,19 +4353,19 @@ var webglext;
     });
     scrollbar.mouseMove.on(function(ev) {
       var pointerFrac = webglext2.yFrac(ev);
-      if (webglext2.hasval(grab)) {
+      if (webglext2.isNotEmpty(grab)) {
         var fracExtent = scrollLayout.hVisible / scrollLayout.hContent;
         var topFrac = pointerFrac + grab * fracExtent;
         scrollLayout.jOffset = scrollLayout.hContent - topFrac * scrollLayout.hContent;
         drawable.redraw();
       }
-      if (webglext2.hasval(pageScrollTimer)) {
+      if (webglext2.isNotEmpty(pageScrollTimer)) {
         recentPointerFrac = pointerFrac;
       }
     });
     scrollbar.mouseUp.on(function(ev) {
       grab = null;
-      if (webglext2.hasval(pageScrollTimer)) {
+      if (webglext2.isNotEmpty(pageScrollTimer)) {
         clearTimeout(pageScrollTimer);
         pageScrollTimer = null;
         recentPointerFrac = null;
@@ -4423,8 +4423,8 @@ var webglext;
           parentPrefSize.h = insets.top + insets.bottom;
         } else if (children.length === 1) {
           var childPrefSize = children[0].prefSize;
-          parentPrefSize.w = webglext2.hasval(childPrefSize.w) ? childPrefSize.w + insets.left + insets.right : null;
-          parentPrefSize.h = webglext2.hasval(childPrefSize.h) ? childPrefSize.h + insets.top + insets.bottom : null;
+          parentPrefSize.w = webglext2.isNotEmpty(childPrefSize.w) ? childPrefSize.w + insets.left + insets.right : null;
+          parentPrefSize.h = webglext2.isNotEmpty(childPrefSize.h) ? childPrefSize.h + insets.top + insets.bottom : null;
         } else if (children.length > 1) {
           throw new Error("Inset layout works with at most 1 child, but pane has " + this.children.length + " children");
         }
@@ -4448,7 +4448,7 @@ var webglext;
       consumeInputEvents = true;
     }
     var insetPane = new webglext2.Pane(newInsetLayout(insets), consumeInputEvents);
-    if (webglext2.hasval(bgColor)) {
+    if (webglext2.isNotEmpty(bgColor)) {
       insetPane.addPainter(webglext2.newBackgroundPainter(bgColor));
     }
     insetPane.addPane(pane);
@@ -4477,20 +4477,20 @@ var webglext;
           var w = child.prefSize.w;
           if (hSide === webglext2.Side.RIGHT) {
             iEnd = parentViewport.iEnd;
-            iStart = webglext2.hasval(w) ? Math.max(iEnd - w, parentViewport.iStart) : parentViewport.iStart;
+            iStart = webglext2.isNotEmpty(w) ? Math.max(iEnd - w, parentViewport.iStart) : parentViewport.iStart;
           } else {
             iStart = parentViewport.iStart;
-            iEnd = webglext2.hasval(w) ? Math.min(iStart + w, parentViewport.iEnd) : parentViewport.iEnd;
+            iEnd = webglext2.isNotEmpty(w) ? Math.min(iStart + w, parentViewport.iEnd) : parentViewport.iEnd;
           }
           var jStart;
           var jEnd;
           var h = child.prefSize.h;
           if (vSide === webglext2.Side.BOTTOM) {
             jStart = parentViewport.jStart;
-            jEnd = webglext2.hasval(h) ? Math.min(jStart + h, parentViewport.jEnd) : parentViewport.jEnd;
+            jEnd = webglext2.isNotEmpty(h) ? Math.min(jStart + h, parentViewport.jEnd) : parentViewport.jEnd;
           } else {
             jEnd = parentViewport.jEnd;
-            jStart = webglext2.hasval(h) ? Math.max(jEnd - h, parentViewport.jStart) : parentViewport.jStart;
+            jStart = webglext2.isNotEmpty(h) ? Math.max(jEnd - h, parentViewport.jStart) : parentViewport.jStart;
           }
           child.viewport.setEdges(iStart, iEnd, jStart, jEnd);
         } else if (children.length > 1) {
@@ -4504,11 +4504,11 @@ var webglext;
 var webglext;
 (function(webglext2) {
   function childHeight(child) {
-    var usePrefHeight = !webglext2.hasval(child.layoutOptions) || child.layoutOptions.height === void 0 || child.layoutOptions.height === "pref" || child.layoutOptions.height === "pref-max";
+    var usePrefHeight = !webglext2.isNotEmpty(child.layoutOptions) || child.layoutOptions.height === void 0 || child.layoutOptions.height === "pref" || child.layoutOptions.height === "pref-max";
     return usePrefHeight ? child.prefSize.h : child.layoutOptions.height;
   }
   function childHeightOverfull(child) {
-    var usePrefHeight = !webglext2.hasval(child.layoutOptions) || child.layoutOptions.height === void 0 || child.layoutOptions.height === "pref";
+    var usePrefHeight = !webglext2.isNotEmpty(child.layoutOptions) || child.layoutOptions.height === void 0 || child.layoutOptions.height === "pref";
     if (usePrefHeight) {
       return child.prefSize.h;
     } else if (child.layoutOptions.height == "pref-max") {
@@ -4522,7 +4522,7 @@ var webglext;
     var totalHeight = 0;
     for (var c = 0; c < childrenToPlace.length; c++) {
       var h = childHeight2(childrenToPlace[c]);
-      if (webglext2.hasval(h)) {
+      if (webglext2.isNotEmpty(h)) {
         totalHeight += h;
       } else {
         numFlexible++;
@@ -4552,14 +4552,14 @@ var webglext;
           var honorChildWidth = !(child.layoutOptions && child.layoutOptions.ignoreWidth);
           if (honorChildWidth) {
             var w = child.prefSize.w;
-            if (webglext2.hasval(wMax) && webglext2.hasval(w)) {
+            if (webglext2.isNotEmpty(wMax) && webglext2.isNotEmpty(w)) {
               wMax = Math.max(wMax, w);
             } else {
               wMax = null;
             }
           }
           var h = childHeight(child);
-          if (webglext2.hasval(hSum) && webglext2.hasval(h)) {
+          if (webglext2.isNotEmpty(hSum) && webglext2.isNotEmpty(h)) {
             hSum += h;
           } else {
             hSum = null;
@@ -4601,7 +4601,7 @@ var webglext;
             var child = childrenToPlace[c];
             var jStart;
             var h = flexData.childHeight(child);
-            if (webglext2.hasval(h)) {
+            if (webglext2.isNotEmpty(h)) {
               jStart = jEnd - h;
             } else {
               var jStart0 = jEnd - flexData.flexHeight - jRemainder;
@@ -4620,7 +4620,7 @@ var webglext;
             var child = childrenToPlace[c];
             var jEnd;
             var h = flexData.childHeight(child);
-            if (webglext2.hasval(h)) {
+            if (webglext2.isNotEmpty(h)) {
               jEnd = jStart + h;
             } else {
               var jEnd0 = jStart + flexData.flexHeight + jRemainder;
@@ -4642,7 +4642,7 @@ var webglext;
 var webglext;
 (function(webglext2) {
   function childWidth(child) {
-    var usePrefWidth = !webglext2.hasval(child.layoutOptions) || child.layoutOptions.width === void 0 || child.layoutOptions.width === "pref";
+    var usePrefWidth = !webglext2.isNotEmpty(child.layoutOptions) || child.layoutOptions.width === void 0 || child.layoutOptions.width === "pref";
     return usePrefWidth ? child.prefSize.w : child.layoutOptions.width;
   }
   function newColumnLayout(leftToRight) {
@@ -4665,14 +4665,14 @@ var webglext;
           var honorChildHeight = !(child.layoutOptions && child.layoutOptions.ignoreHeight);
           if (honorChildHeight) {
             var h = child.prefSize.h;
-            if (webglext2.hasval(hMax) && webglext2.hasval(h)) {
+            if (webglext2.isNotEmpty(hMax) && webglext2.isNotEmpty(h)) {
               hMax = Math.max(hMax, h);
             } else {
               hMax = null;
             }
           }
           var w = childWidth(child);
-          if (webglext2.hasval(wSum) && webglext2.hasval(w)) {
+          if (webglext2.isNotEmpty(wSum) && webglext2.isNotEmpty(w)) {
             wSum += w;
           } else {
             wSum = null;
@@ -4705,7 +4705,7 @@ var webglext;
         var totalFlexWidth = parentViewport.w;
         for (var c = 0; c < childrenToPlace.length; c++) {
           var w = childWidth(childrenToPlace[c]);
-          if (webglext2.hasval(w)) {
+          if (webglext2.isNotEmpty(w)) {
             totalFlexWidth -= w;
           } else {
             numFlexible++;
@@ -4721,7 +4721,7 @@ var webglext;
             var child = childrenToPlace[c];
             var iEnd;
             var w = childWidth(child);
-            if (webglext2.hasval(w)) {
+            if (webglext2.isNotEmpty(w)) {
               iEnd = iStart + w;
             } else {
               var iEnd0 = iStart + flexWidth + iRemainder;
@@ -4740,7 +4740,7 @@ var webglext;
             var child = childrenToPlace[c];
             var iStart;
             var w = childWidth(child);
-            if (webglext2.hasval(w)) {
+            if (webglext2.isNotEmpty(w)) {
               iStart = iEnd - w;
             } else {
               var iStart0 = iEnd - flexWidth - iRemainder;
@@ -4778,13 +4778,13 @@ var webglext;
           for (var c = 0; c < underlays.length; c++) {
             var childPrefSize = underlays[c].prefSize;
             var childPrefWidth = childPrefSize.w;
-            if (webglext2.hasval(maxChildPrefWidth) && webglext2.hasval(childPrefWidth)) {
+            if (webglext2.isNotEmpty(maxChildPrefWidth) && webglext2.isNotEmpty(childPrefWidth)) {
               maxChildPrefWidth = Math.max(maxChildPrefWidth, childPrefWidth);
             } else {
               maxChildPrefWidth = null;
             }
             var childPrefHeight = childPrefSize.h;
-            if (webglext2.hasval(maxChildPrefHeight) && webglext2.hasval(childPrefHeight)) {
+            if (webglext2.isNotEmpty(maxChildPrefHeight) && webglext2.isNotEmpty(childPrefHeight)) {
               maxChildPrefHeight = Math.max(maxChildPrefHeight, childPrefHeight);
             } else {
               maxChildPrefHeight = null;
@@ -4819,16 +4819,16 @@ var webglext;
             activeChild = child;
           }
         }
-        if (webglext2.hasval(activeChild)) {
+        if (webglext2.isNotEmpty(activeChild)) {
           var childPrefSize = activeChild.prefSize;
           var childPrefWidth = childPrefSize.w;
-          if (webglext2.hasval(childPrefWidth)) {
+          if (webglext2.isNotEmpty(childPrefWidth)) {
             parentPrefSize.w = childPrefWidth;
           } else {
             parentPrefSize.w = null;
           }
           var childPrefHeight = childPrefSize.h;
-          if (webglext2.hasval(childPrefHeight)) {
+          if (webglext2.isNotEmpty(childPrefHeight)) {
             parentPrefSize.h = childPrefHeight;
           } else {
             parentPrefSize.h = null;
@@ -4862,17 +4862,17 @@ var webglext;
 var webglext;
 (function(webglext2) {
   function newBorderPainter(color, options) {
-    if (!webglext2.hasval(options))
+    if (!webglext2.isNotEmpty(options))
       options = {};
-    if (!webglext2.hasval(options.drawTop))
+    if (!webglext2.isNotEmpty(options.drawTop))
       options.drawTop = true;
-    if (!webglext2.hasval(options.drawLeft))
+    if (!webglext2.isNotEmpty(options.drawLeft))
       options.drawLeft = true;
-    if (!webglext2.hasval(options.drawRight))
+    if (!webglext2.isNotEmpty(options.drawRight))
       options.drawRight = true;
-    if (!webglext2.hasval(options.drawBottom))
+    if (!webglext2.isNotEmpty(options.drawBottom))
       options.drawBottom = true;
-    if (!webglext2.hasval(options.thickness))
+    if (!webglext2.isNotEmpty(options.thickness))
       options.thickness = 1;
     var simple = options.thickness === 1 && color.a >= 1;
     return simple ? newSimpleBorderPainter(color, options) : newFullBorderPainter(color, options);
@@ -5151,12 +5151,12 @@ var webglext;
   function attachAxisMouseListeners1D(pane, axis, isVertical) {
     var vGrab = null;
     pane.mouseDown.on(function(ev) {
-      if (webglext2.isLeftMouseDown(ev.mouseEvent) && !webglext2.hasval(vGrab)) {
+      if (webglext2.isLeftMouseDown(ev.mouseEvent) && !webglext2.isNotEmpty(vGrab)) {
         vGrab = axis.vAtFrac(isVertical ? webglext2.yFrac(ev) : webglext2.xFrac(ev));
       }
     });
     pane.mouseMove.on(function(ev) {
-      if (webglext2.isLeftMouseDown(ev.mouseEvent) && webglext2.hasval(vGrab)) {
+      if (webglext2.isLeftMouseDown(ev.mouseEvent) && webglext2.isNotEmpty(vGrab)) {
         axis.pan(vGrab - axis.vAtFrac(isVertical ? webglext2.yFrac(ev) : webglext2.xFrac(ev)));
       }
     });
@@ -5173,13 +5173,13 @@ var webglext;
     var xGrab = null;
     var yGrab = null;
     pane.mouseDown.on(function(ev) {
-      if (webglext2.isLeftMouseDown(ev.mouseEvent) && !webglext2.hasval(xGrab)) {
+      if (webglext2.isLeftMouseDown(ev.mouseEvent) && !webglext2.isNotEmpty(xGrab)) {
         xGrab = axis.xAtFrac(webglext2.xFrac(ev));
         yGrab = axis.yAtFrac(webglext2.yFrac(ev));
       }
     });
     pane.mouseMove.on(function(ev) {
-      if (webglext2.isLeftMouseDown(ev.mouseEvent) && webglext2.hasval(xGrab)) {
+      if (webglext2.isLeftMouseDown(ev.mouseEvent) && webglext2.isNotEmpty(xGrab)) {
         axis.pan(xGrab - axis.xAtFrac(webglext2.xFrac(ev)), yGrab - axis.yAtFrac(webglext2.yFrac(ev)));
       }
     });
@@ -5197,8 +5197,8 @@ var webglext;
 var webglext;
 (function(webglext2) {
   function newPlotLayout(options) {
-    var horizAxisHeight = webglext2.hasval(options) && webglext2.hasval(options.horizAxisHeight) ? options.horizAxisHeight : 60;
-    var vertAxisWidth = webglext2.hasval(options) && webglext2.hasval(options.vertAxisWidth) ? options.vertAxisWidth : 70;
+    var horizAxisHeight = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.horizAxisHeight) ? options.horizAxisHeight : 60;
+    var vertAxisWidth = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.vertAxisWidth) ? options.vertAxisWidth : 70;
     return {
       updateChildViewports: function(children, parentViewport) {
         var topAxes = [];
@@ -5281,30 +5281,18 @@ var webglext;
   webglext2.edgeMarks_VERTSHADER = edgeMarks_VERTSHADER;
   webglext2.gradient_FRAGSHADER = webglext2.concatLines("                                 ", "  precision highp float;         ", "  uniform sampler2D u_colorTex;  ", "                                 ", "  varying vec2 v_texCoord;       ", "                                                                                   ", "  void main( ) {                                                                   ", "     vec4 color = texture2D( u_colorTex, v_texCoord );                             ", "     gl_FragColor = color;                                                         ", "     gl_FragColor.a = 1.0;                                                         ", "  }                                                                                ");
   function newEdgeAxisPainter(axis, labelSide, options) {
-    var tickSpacing = webglext2.hasval(options) && webglext2.hasval(options.tickSpacing) ? options.tickSpacing : 100;
-    var label = webglext2.hasval(options) && webglext2.hasval(options.label) ? options.label : "";
-    var units = webglext2.hasval(options) && webglext2.hasval(options.units) ? options.units : "";
-    var shortenLabels = webglext2.hasval(options) && webglext2.hasval(options.shortenLabels) ? options.shortenLabels : true;
-    var font = webglext2.hasval(options) && webglext2.hasval(options.font) ? options.font : "11px verdana,sans-serif";
-    var textColor = webglext2.hasval(options) && webglext2.hasval(options.textColor) ? options.textColor : webglext2.black;
-    var tickColor = webglext2.hasval(options) && webglext2.hasval(options.tickColor) ? options.tickColor : webglext2.black;
-    var tickSize = webglext2.hasval(options) && webglext2.hasval(options.tickSize) ? options.tickSize : 6;
-    var showLabel = webglext2.hasval(options) && webglext2.hasval(options.showLabel) ? options.showLabel : true;
-    var showBorder = webglext2.hasval(options) && webglext2.hasval(options.showBorder) ? options.showBorder : false;
-    var gradientFill = webglext2.hasval(options) && webglext2.hasval(options.gradientFill) ? options.gradientFill : void 0;
-    var tickLabeler = webglext2.hasval(options) && webglext2.hasval(options.tickLabeler) ? options.tickLabeler : void 0;
+    var tickSpacings = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSpacings) ? options.tickSpacings : 100;
+    var label = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.label) ? options.label : "";
+    var units = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.units) ? options.units : "";
+    var shortenLabels = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.shortenLabels) ? options.shortenLabels : true;
+    var font = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.font) ? options.font : "11px verdana,sans-serif";
+    var textColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.textColor) ? options.textColor : webglext2.black;
+    var tickColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickColor) ? options.tickColor : webglext2.black;
+    var tickSize = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSize) ? options.tickSize : 6;
+    var showLabel = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.showLabel) ? options.showLabel : true;
+    var showBorder = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.showBorder) ? options.showBorder : false;
+    var tickLabeler = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickLabeler) ? options.tickLabeler : void 0;
     var tickPositions = new Float32Array(0);
-    var gradientProgram = new webglext2.Program(webglext2.heatmap_VERTSHADER, webglext2.gradient_FRAGSHADER);
-    var gradientProgram_u_modelViewMatrix = new webglext2.UniformMatrix4f(gradientProgram, "u_modelViewMatrix");
-    var gradientProgram_u_colorTexture = new webglext2.UniformSampler2D(gradientProgram, "u_colorTex");
-    var gradientProgram_a_vertCoord = new webglext2.Attribute(gradientProgram, "a_vertCoord");
-    var gradientProgram_a_texCoord = new webglext2.Attribute(gradientProgram, "a_texCoord");
-    if (gradientFill)
-      var gradientColorTexture = webglext2.getGradientTexture(gradientFill);
-    var gradientVertCoords = new Float32Array(0);
-    var gradientVertCoordsBuffer = webglext2.newDynamicBuffer();
-    var gradientTexCoords = new Float32Array(0);
-    var gradientTexCoordsBuffer = webglext2.newDynamicBuffer();
     var borderProgram = new webglext2.Program(webglext2.modelview_VERTSHADER, webglext2.solid_FRAGSHADER);
     var borderProgram_a_Position = new webglext2.Attribute(borderProgram, "a_Position");
     var borderProgram_u_modelViewMatrix = new webglext2.UniformMatrix4f(borderProgram, "u_modelViewMatrix");
@@ -5328,12 +5316,12 @@ var webglext;
       var sizePixels = isVerticalAxis ? viewport.h : viewport.w;
       if (sizePixels === 0)
         return;
-      var approxNumTicks = sizePixels / tickSpacing;
+      var approxNumTicks = sizePixels / tickSpacings;
       var tickInterval = webglext2.getTickInterval(axis, approxNumTicks);
       var tickCount = webglext2.getTickCount(axis, tickInterval);
       tickPositions = webglext2.ensureCapacityFloat32(tickPositions, tickCount);
       webglext2.getTickPositions(axis, tickInterval, tickCount, tickPositions);
-      if (showBorder || gradientFill) {
+      if (showBorder) {
         borderCoords = webglext2.ensureCapacityFloat32(borderCoords, 10);
         var horizontal = labelSide === webglext2.Side.TOP || labelSide === webglext2.Side.BOTTOM;
         var bFlip = labelSide === webglext2.Side.LEFT || labelSide === webglext2.Side.BOTTOM;
@@ -5349,38 +5337,6 @@ var webglext;
         borderCoords[7] = !horizontal ? height : bFlip ? height - tickSize : 0;
         borderCoords[8] = horizontal ? 0 : bFlip ? width - tickSize : 0;
         borderCoords[9] = !horizontal ? 0 : bFlip ? height - tickSize : 0;
-      }
-      if (gradientFill) {
-        gradientProgram.use(gl);
-        gradientProgram_u_modelViewMatrix.setData(gl, webglext2.glOrthoViewport(viewport));
-        gradientProgram_u_colorTexture.setDataAndBind(gl, 0, gradientColorTexture);
-        gradientVertCoords = webglext2.ensureCapacityFloat32(gradientVertCoords, 8);
-        gradientVertCoords[0] = borderCoords[2];
-        gradientVertCoords[1] = borderCoords[3];
-        gradientVertCoords[2] = borderCoords[0];
-        gradientVertCoords[3] = borderCoords[1];
-        gradientVertCoords[4] = borderCoords[4];
-        gradientVertCoords[5] = borderCoords[5];
-        gradientVertCoords[6] = borderCoords[6];
-        gradientVertCoords[7] = borderCoords[7];
-        gradientVertCoordsBuffer.setData(gradientVertCoords);
-        gradientProgram_a_vertCoord.setDataAndEnable(gl, gradientVertCoordsBuffer, 2, webglext2.GL.FLOAT);
-        gradientTexCoords = webglext2.ensureCapacityFloat32(gradientTexCoords, 8);
-        gradientTexCoords[0] = 0;
-        gradientTexCoords[1] = 0;
-        gradientTexCoords[2] = 0;
-        gradientTexCoords[3] = 0;
-        gradientTexCoords[4] = 1;
-        gradientTexCoords[5] = 1;
-        gradientTexCoords[6] = 1;
-        gradientTexCoords[7] = 1;
-        gradientTexCoordsBuffer.setData(gradientTexCoords);
-        gradientProgram_a_texCoord.setDataAndEnable(gl, gradientTexCoordsBuffer, 2, webglext2.GL.FLOAT);
-        gl.drawArrays(webglext2.GL.TRIANGLE_STRIP, 0, 4);
-        gradientProgram_u_colorTexture.unbind(gl);
-        gradientProgram_a_vertCoord.disable(gl);
-        gradientProgram_a_texCoord.disable(gl);
-        gradientProgram.endUse(gl);
       }
       if (showBorder) {
         borderProgram.use(gl);
@@ -5516,9 +5472,9 @@ var webglext;
 var webglext;
 (function(webglext2) {
   function newXyLinePainter(axis, xCoords, yCoords, options) {
-    var thickness = webglext2.hasval(options) && webglext2.hasval(options.thickness) ? options.thickness : 4;
-    var color = webglext2.hasval(options) && webglext2.hasval(options.color) ? options.color : webglext2.black;
-    var blend = webglext2.hasval(options) && webglext2.hasval(options.blend) ? options.blend : false;
+    var thickness = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.thickness) ? options.thickness : 4;
+    var color = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.color) ? options.color : webglext2.black;
+    var blend = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.blend) ? options.blend : false;
     var program = new webglext2.Program(webglext2.modelview_VERTSHADER, webglext2.solid_FRAGSHADER);
     var u_Color = new webglext2.UniformColor(program, "u_Color");
     var u_modelViewMatrix = new webglext2.UniformMatrix4f(program, "u_modelViewMatrix");
@@ -5601,7 +5557,7 @@ var webglext;
   webglext2.heatmap_VERTSHADER = webglext2.concatLines("                                                          ", "    uniform mat4 u_modelViewMatrix;                       ", "    attribute vec4 a_vertCoord;                           ", "    attribute vec2 a_texCoord;                            ", "    varying vec2 v_texCoord;                              ", "                                                          ", "    void main( ) {                                        ", "        gl_Position = u_modelViewMatrix * a_vertCoord;    ", "        v_texCoord = a_texCoord;                          ", "    }                                                     ", "                                                          ");
   webglext2.heatmap_FRAGSHADER = webglext2.concatLines("                                 ", "  precision highp float;         ", "  uniform sampler2D u_dataTex;   ", "  uniform sampler2D u_colorTex;  ", "  uniform float u_dataMin;       ", "  uniform float u_dataMax;       ", "                                 ", "  varying vec2 v_texCoord;       ", "                                                                                   ", "  void main()                                                                      ", "  {                                                                                ", "     float dataVal = texture2D( u_dataTex, v_texCoord ).r;                         ", "     float normalizedVal = ( dataVal - u_dataMin ) / ( u_dataMax - u_dataMin );    ", "     clamp( normalizedVal, 0.0, 1.0 );                                             ", "                                                                                   ", "     vec4 color = texture2D( u_colorTex, vec2( normalizedVal, 0 ) );               ", "     gl_FragColor = color;                                                         ", "     gl_FragColor.a = 1.0;                                                         ", "  }                                                                                ");
   function newHeatmapPainter(axis, colorAxis, data, colorTexture, options) {
-    var blend = webglext2.hasval(options) && webglext2.hasval(options.blend) ? options.blend : false;
+    var blend = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.blend) ? options.blend : false;
     var array = new Float32Array(data.xSize * data.ySize * 4);
     for (var x = 0; x < data.xSize; x++) {
       for (var y = 0; y < data.ySize; y++) {
@@ -5739,11 +5695,24 @@ var webglext;
     TimeAxis1D2.prototype.tFrac = function(t_PMILLIS) {
       return this.vFrac(t_PMILLIS - this._epoch_PMILLIS);
     };
-    TimeAxis1D2.prototype.tPan = function(tAmount_MILLIS) {
-      this.pan(tAmount_MILLIS);
+    TimeAxis1D2.prototype.tPan = function(vAmount) {
+      this._vMin += vAmount;
+      this._vMax += vAmount;
+      var delta = 0;
+      if (this._vMin < -this._epoch_PMILLIS) {
+        delta = this._vMin + this._epoch_PMILLIS;
+        this._vMax = this._vMax - delta;
+        this._vMin = this._vMin - delta;
+      }
+      this._limitsChanged.fire();
     };
-    TimeAxis1D2.prototype.tZoom = function(factor, tAnchor_PMILLIS) {
-      this.zoom(factor, tAnchor_PMILLIS - this._epoch_PMILLIS);
+    TimeAxis1D2.prototype.tZoom = function(factor, vAnchor) {
+      this._vMin = vAnchor - factor * (vAnchor - this._vMin);
+      this._vMax = vAnchor + factor * (this._vMax - vAnchor);
+      if (this._vMin < -this._epoch_PMILLIS) {
+        this._vMin = -this._epoch_PMILLIS - 1e-6;
+      }
+      this._limitsChanged.fire();
     };
     return TimeAxis1D2;
   }(webglext2.Axis1D);
@@ -5752,14 +5721,14 @@ var webglext;
 var webglext;
 (function(webglext2) {
   function newTimeAxisPainter(timeAxis, labelSide, displayTimeZone, tickTimeZone, options) {
-    var tickSpacing = webglext2.hasval(options) && webglext2.hasval(options.tickSpacing) ? options.tickSpacing : 60;
-    var font = webglext2.hasval(options) && webglext2.hasval(options.font) ? options.font : "11px verdana,sans-serif";
-    var textColor = webglext2.hasval(options) && webglext2.hasval(options.textColor) ? options.textColor : webglext2.black;
-    var tickColor = webglext2.hasval(options) && webglext2.hasval(options.tickColor) ? options.tickColor : webglext2.black;
-    var tickSize = webglext2.hasval(options) && webglext2.hasval(options.tickSize) ? options.tickSize : 6;
-    var labelAlign = webglext2.hasval(options) && webglext2.hasval(options.labelAlign) ? options.labelAlign : 0.5;
-    var referenceDate_PMILLIS = webglext2.hasval(options) && webglext2.hasval(options.referenceDate) ? webglext2.parseTime_PMILLIS(options.referenceDate) : void 0;
-    var isFuturePositive = webglext2.hasval(options) && webglext2.hasval(options.isFuturePositive) ? options.isFuturePositive : true;
+    var tickSpacings = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSpacings) ? options.tickSpacings : 60;
+    var font = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.font) ? options.font : "11px sans-serif";
+    var textColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.textColor) ? options.textColor : webglext2.black;
+    var tickColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickColor) ? options.tickColor : webglext2.black;
+    var tickSize = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSize) ? options.tickSize : 6;
+    var labelAlign = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.labelAlign) ? options.labelAlign : 0.5;
+    var referenceDate_PMILLIS = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.referenceDate) ? webglext2.parseTime_PMILLIS(options.referenceDate) : void 0;
+    var isFuturePositive = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.isFuturePositive) ? options.isFuturePositive : true;
     var marksProgram = new webglext2.Program(webglext2.edgeMarks_VERTSHADER(labelSide), webglext2.solid_FRAGSHADER);
     var marksProgram_u_VMin = new webglext2.Uniform1f(marksProgram, "u_VMin");
     var marksProgram_u_VSize = new webglext2.Uniform1f(marksProgram, "u_VSize");
@@ -5777,7 +5746,7 @@ var webglext;
       var sizePixels = isVerticalAxis ? viewport.h : viewport.w;
       if (sizePixels === 0)
         return;
-      var tickTimes_PMILLIS = getTickTimes_PMILLIS(timeAxis, sizePixels, tickSpacing, tickTimeZone, referenceDate_PMILLIS);
+      var tickTimes_PMILLIS = getTickTimes_PMILLIS(timeAxis, sizePixels, tickSpacings, tickTimeZone, referenceDate_PMILLIS);
       var tickInterval_MILLIS = getTickInterval_MILLIS(tickTimes_PMILLIS);
       var tickCount = tickTimes_PMILLIS.length;
       marksProgram.use(gl);
@@ -5837,54 +5806,13 @@ var webglext;
         }
         textureRenderer.draw(gl, textTexture, xFrac, yFrac, { xAnchor: 0, yAnchor: 0 });
       }
-      if (ticks.timeStructFactory) {
-        var timeStructs = createTimeStructs(timeAxis, ticks.timeStructFactory, tickTimeZone, referenceDate_PMILLIS, isFuturePositive, tickTimes_PMILLIS, labelAlign);
-        for (var n = 0; n < timeStructs.length; n++) {
-          var timeStruct = timeStructs[n];
-          var text = ticks.prefixFormat(timeStruct);
-          var textTexture = textTextures.value(text);
-          var halfTextFrac = 0.5 * textTexture.w / viewport.w;
-          var minFrac = timeAxis.tFrac(timeStruct.start_PMILLIS) - halfTextFrac;
-          var maxFrac = timeAxis.tFrac(timeStruct.end_PMILLIS) + halfTextFrac;
-          var tFrac = webglext2.clamp(minFrac, maxFrac, timeAxis.tFrac(timeStruct.textCenter_PMILLIS));
-          if (tFrac - halfTextFrac < 0 || tFrac + halfTextFrac > 1)
-            continue;
-          var xFrac;
-          var yFrac;
-          var textOpts;
-          if (labelSide === webglext2.Side.LEFT || labelSide === webglext2.Side.RIGHT) {
-            var xFrac0 = 0.5 * (viewport.w - tickSize - 2 - hTickLabels) / viewport.w;
-            xFrac = labelSide === webglext2.Side.LEFT ? xFrac0 : 1 - xFrac0;
-            yFrac = tFrac;
-            textOpts = {
-              xAnchor: textTexture.yAnchor(0.5),
-              yAnchor: 0.5,
-              rotation_CCWRAD: 0.5 * Math.PI
-            };
-          } else {
-            var yFrac0 = 0.5 * (viewport.h - tickSize - 2 - hTickLabels) / viewport.h;
-            yFrac = labelSide === webglext2.Side.BOTTOM ? yFrac0 : 1 - yFrac0;
-            xFrac = tFrac;
-            textOpts = {
-              xAnchor: 0.5,
-              yAnchor: textTexture.yAnchor(0.5),
-              rotation_CCWRAD: 0
-            };
-          }
-          textureRenderer.draw(gl, textTexture, xFrac, yFrac, textOpts);
-        }
-      }
       textureRenderer.end(gl);
       textTextures.retainTouched();
     };
   }
   webglext2.newTimeAxisPainter = newTimeAxisPainter;
   function getTickDisplayData(tickInterval_MILLIS, referenceDate_PMILLIS, displayTimeZone, isFuturePositive) {
-    if (webglext2.hasval(referenceDate_PMILLIS)) {
-      return getTickDisplayDataRelative(tickInterval_MILLIS, referenceDate_PMILLIS, isFuturePositive);
-    } else {
-      return getTickDisplayDataAbsolute(tickInterval_MILLIS, displayTimeZone);
-    }
+    return getTickDisplayDataRelative(tickInterval_MILLIS, 0, isFuturePositive);
   }
   function getTickDisplayDataRelative(tickInterval_MILLIS, referenceDate_PMILLIS, isFuturePositive) {
     if (tickInterval_MILLIS <= webglext2.minutesToMillis(1)) {
@@ -5897,7 +5825,9 @@ var webglext;
         var elapsedTime_MIN = (elapsedTime_HOURS - elapsedTime_HOURS_WHOLE) * 60;
         var elapsedTime_MIN_WHOLE = Math.floor(elapsedTime_MIN);
         var elapsedTime_SEC = (elapsedTime_MIN - elapsedTime_MIN_WHOLE) * 60;
-        var elapsedTime_SEC_WHOLE = Math.round(elapsedTime_SEC);
+        var elapsedTime_SEC_WHOLE = Math.floor(elapsedTime_SEC);
+        var elapsedTime_MILLSEC = (elapsedTime_SEC - elapsedTime_SEC_WHOLE) * 100;
+        var elapsedTime_MILLSEC_WHOLE = Math.round(elapsedTime_MILLSEC);
         if (elapsedTime_SEC_WHOLE >= 60) {
           elapsedTime_SEC_WHOLE -= 60;
           elapsedTime_MIN_WHOLE += 1;
@@ -5907,7 +5837,12 @@ var webglext;
         }
         var min = elapsedTime_MIN_WHOLE < 10 ? "0" + elapsedTime_MIN_WHOLE : "" + elapsedTime_MIN_WHOLE;
         var sec = elapsedTime_SEC_WHOLE < 10 ? "0" + elapsedTime_SEC_WHOLE : "" + elapsedTime_SEC_WHOLE;
-        return min + ":" + sec;
+        var milli = elapsedTime_MILLSEC_WHOLE < 10 ? "0" + elapsedTime_MILLSEC_WHOLE : "" + elapsedTime_MILLSEC_WHOLE;
+        if (tickInterval_MILLIS <= webglext2.secondsToMillis(1)) {
+          return min + ":" + sec + ":" + milli;
+        } else {
+          return min + ":" + sec;
+        }
       };
       var prefixFormat = function(timeStruct) {
         var center_PMILLIS = (timeStruct.end_PMILLIS - timeStruct.start_PMILLIS) / 2 + timeStruct.start_PMILLIS;
@@ -5979,32 +5914,28 @@ var webglext;
         return moment(timeStruct.textCenter_PMILLIS).zone(displayTimeZone).format(format);
       };
     };
-    if (tickInterval_MILLIS <= webglext2.minutesToMillis(1)) {
-      var tickFormat = defaultTickFormat("mm:ss");
-      var prefixFormat = defaultPrefixFormat("D MMM HH:00");
+    if (tickInterval_MILLIS > webglext2.hoursToMillis(1)) {
+      var tickFormat = defaultTickFormat("hh:mm:ss");
+      var prefixFormat = defaultPrefixFormat("hh:mm:ss");
       var timeStructFactory = function() {
         return new HourStruct();
       };
-    } else if (tickInterval_MILLIS <= webglext2.hoursToMillis(12)) {
-      var tickFormat = defaultTickFormat("HH:mm");
-      var prefixFormat = defaultPrefixFormat("D MMM YYYY");
+    }
+    if (tickInterval_MILLIS > webglext2.minutesToMillis(1)) {
+      var tickFormat = defaultTickFormat("mm:ss");
+      var prefixFormat = defaultPrefixFormat("mm:ss");
       var timeStructFactory = function() {
-        return new DayStruct();
+        return new HourStruct();
       };
-    } else if (tickInterval_MILLIS <= webglext2.daysToMillis(10)) {
-      var tickFormat = defaultTickFormat("D");
-      var prefixFormat = defaultPrefixFormat("MMM YYYY");
+    }
+    if (tickInterval_MILLIS < webglext2.minutesToMillis(1)) {
+      var tickFormat = defaultTickFormat("mm:ss.SSS");
+      var prefixFormat = defaultPrefixFormat("mm:ss.SSS");
       var timeStructFactory = function() {
-        return new MonthStruct();
-      };
-    } else if (tickInterval_MILLIS <= webglext2.daysToMillis(60)) {
-      var tickFormat = defaultTickFormat("MMM");
-      var prefixFormat = defaultPrefixFormat("YYYY");
-      var timeStructFactory = function() {
-        return new YearStruct();
+        return new HourStruct();
       };
     } else {
-      var tickFormat = defaultTickFormat("YYYY");
+      var tickFormat = defaultTickFormat("HH:mm:ss");
     }
     return { prefixFormat, tickFormat, timeStructFactory };
   }
@@ -6018,50 +5949,13 @@ var webglext;
     };
     return TimeStruct2;
   }();
-  var YearStruct = function(_super) {
-    __extends(YearStruct2, _super);
-    function YearStruct2() {
-      return _super !== null && _super.apply(this, arguments) || this;
-    }
-    YearStruct2.prototype.setTime = function(time_PMILLIS, timeZone) {
-      var m = moment(time_PMILLIS).zone(timeZone);
-      m.month(0);
-      m.date(0);
-      m.hours(0);
-      m.minutes(0);
-      m.seconds(0);
-      return m;
-    };
-    YearStruct2.prototype.incrementTime = function(m) {
-      m.add("years", 1);
-    };
-    return YearStruct2;
-  }(TimeStruct);
-  var MonthStruct = function(_super) {
-    __extends(MonthStruct2, _super);
-    function MonthStruct2() {
-      return _super !== null && _super.apply(this, arguments) || this;
-    }
-    MonthStruct2.prototype.setTime = function(time_PMILLIS, timeZone) {
-      var m = moment(time_PMILLIS).zone(timeZone);
-      m.date(0);
-      m.hours(0);
-      m.minutes(0);
-      m.seconds(0);
-      return m;
-    };
-    MonthStruct2.prototype.incrementTime = function(m) {
-      m.add("months", 1);
-    };
-    return MonthStruct2;
-  }(TimeStruct);
   var DayStruct = function(_super) {
     __extends(DayStruct2, _super);
     function DayStruct2() {
       return _super !== null && _super.apply(this, arguments) || this;
     }
-    DayStruct2.prototype.setTime = function(time_PMILLIS, timeZone) {
-      var m = moment(time_PMILLIS).zone(timeZone);
+    DayStruct2.prototype.setTime = function(time_PMILLIS) {
+      var m = moment(time_PMILLIS);
       m.hours(0);
       m.minutes(0);
       m.seconds(0);
@@ -6077,8 +5971,8 @@ var webglext;
     function HourStruct2() {
       return _super !== null && _super.apply(this, arguments) || this;
     }
-    HourStruct2.prototype.setTime = function(time_PMILLIS, timeZone) {
-      var m = moment(time_PMILLIS).zone(timeZone);
+    HourStruct2.prototype.setTime = function(time_PMILLIS) {
+      var m = moment(time_PMILLIS);
       m.minutes(0);
       m.seconds(0);
       return m;
@@ -6088,254 +5982,43 @@ var webglext;
     };
     return HourStruct2;
   }(TimeStruct);
-  function createTimeStructs(timeAxis, factory, timeZone, referenceDate_PMILLIS, isFuturePositive, tickTimes_PMILLIS, labelAlign) {
-    if (webglext2.hasval(referenceDate_PMILLIS)) {
-      var tickInterval_MILLIS = getTickInterval_MILLIS(tickTimes_PMILLIS);
-      if (tickInterval_MILLIS <= webglext2.minutesToMillis(1)) {
-        return createTimeStructsRelativeHours(timeAxis, referenceDate_PMILLIS, isFuturePositive, tickTimes_PMILLIS, labelAlign);
-      } else {
-        return createTimeStructsRelativeDays(timeAxis, referenceDate_PMILLIS, isFuturePositive, tickTimes_PMILLIS, labelAlign);
-      }
-    } else {
-      return createTimeStructsAbsolute(timeAxis, factory, timeZone, tickTimes_PMILLIS, labelAlign);
-    }
-  }
-  function createTimeStructsRelativeHours(timeAxis, referenceDate_PMILLIS, isFuturePositive, tickTimes_PMILLIS, labelAlign) {
+  function getTickTimes_PMILLIS(timeAxis, sizePixels, tickSpacings, timeZone, referenceDate_PMILLIS) {
     var dMin_PMILLIS = timeAxis.tMin_PMILLIS;
     var dMax_PMILLIS = timeAxis.tMax_PMILLIS;
-    var timeStructs = [];
-    var maxViewDuration_MILLIS = Number.NEGATIVE_INFINITY;
-    var previous_HOURS = null;
-    var previous_SIGN = null;
-    for (var n = 0; n < tickTimes_PMILLIS.length; n++) {
-      var elapsedTime_MILLIS = tickTimes_PMILLIS[n] - referenceDate_PMILLIS;
-      var negative = elapsedTime_MILLIS < 0;
-      var signString = negative && isFuturePositive || !negative && !isFuturePositive ? "-" : "";
-      elapsedTime_MILLIS = Math.abs(elapsedTime_MILLIS);
-      var elapsedTime_HOURS = webglext2.millisToHours(elapsedTime_MILLIS);
-      var elapsedTime_HOURS_WHOLE = Math.floor(elapsedTime_HOURS);
-      if (webglext2.hasval(previous_HOURS) && elapsedTime_HOURS_WHOLE === previous_HOURS && negative === previous_SIGN)
-        continue;
-      previous_HOURS = elapsedTime_HOURS_WHOLE;
-      previous_SIGN = negative;
-      var timeStruct = new TimeStruct();
-      if (negative) {
-        timeStruct.end_PMILLIS = webglext2.hoursToMillis(-elapsedTime_HOURS_WHOLE) + referenceDate_PMILLIS;
-        timeStruct.start_PMILLIS = timeStruct.end_PMILLIS - webglext2.hoursToMillis(1);
-      } else {
-        timeStruct.start_PMILLIS = webglext2.hoursToMillis(elapsedTime_HOURS_WHOLE) + referenceDate_PMILLIS;
-        timeStruct.end_PMILLIS = timeStruct.start_PMILLIS + webglext2.hoursToMillis(1);
-      }
-      timeStruct.viewStart_PMILLIS = webglext2.clamp(timeStruct.start_PMILLIS, timeStruct.end_PMILLIS, dMin_PMILLIS);
-      timeStruct.viewEnd_PMILLIS = webglext2.clamp(timeStruct.start_PMILLIS, timeStruct.end_PMILLIS, dMax_PMILLIS);
-      maxViewDuration_MILLIS = Math.max(maxViewDuration_MILLIS, timeStruct.viewEnd_PMILLIS - timeStruct.viewStart_PMILLIS);
-      timeStructs.push(timeStruct);
-    }
-    setTimeStructTextCenter(timeStructs, labelAlign, maxViewDuration_MILLIS);
-    return timeStructs;
-  }
-  function createTimeStructsRelativeDays(timeAxis, referenceDate_PMILLIS, isFuturePositive, tickTimes_PMILLIS, labelAlign) {
-    var dMin_PMILLIS = timeAxis.tMin_PMILLIS;
-    var dMax_PMILLIS = timeAxis.tMax_PMILLIS;
-    var timeStructs = [];
-    var maxViewDuration_MILLIS = Number.NEGATIVE_INFINITY;
-    var previous_DAYS = null;
-    var previous_SIGN = null;
-    for (var n = 0; n < tickTimes_PMILLIS.length; n++) {
-      var elapsedTime_MILLIS = tickTimes_PMILLIS[n] - referenceDate_PMILLIS;
-      var negative = elapsedTime_MILLIS < 0;
-      var signString = negative && isFuturePositive || !negative && !isFuturePositive ? "-" : "";
-      elapsedTime_MILLIS = Math.abs(elapsedTime_MILLIS);
-      var elapsedTime_DAYS = webglext2.millisToDays(elapsedTime_MILLIS);
-      var elapsedTime_DAYS_WHOLE = Math.floor(elapsedTime_DAYS);
-      if (webglext2.hasval(previous_DAYS) && elapsedTime_DAYS_WHOLE === previous_DAYS && negative === previous_SIGN)
-        continue;
-      previous_DAYS = elapsedTime_DAYS_WHOLE;
-      previous_SIGN = negative;
-      var timeStruct = new TimeStruct();
-      if (negative) {
-        timeStruct.end_PMILLIS = webglext2.daysToMillis(-elapsedTime_DAYS_WHOLE) + referenceDate_PMILLIS;
-        timeStruct.start_PMILLIS = timeStruct.end_PMILLIS - webglext2.daysToMillis(1);
-      } else {
-        timeStruct.start_PMILLIS = webglext2.daysToMillis(elapsedTime_DAYS_WHOLE) + referenceDate_PMILLIS;
-        timeStruct.end_PMILLIS = timeStruct.start_PMILLIS + webglext2.daysToMillis(1);
-      }
-      timeStruct.viewStart_PMILLIS = webglext2.clamp(timeStruct.start_PMILLIS, timeStruct.end_PMILLIS, dMin_PMILLIS);
-      timeStruct.viewEnd_PMILLIS = webglext2.clamp(timeStruct.start_PMILLIS, timeStruct.end_PMILLIS, dMax_PMILLIS);
-      maxViewDuration_MILLIS = Math.max(maxViewDuration_MILLIS, timeStruct.viewEnd_PMILLIS - timeStruct.viewStart_PMILLIS);
-      timeStructs.push(timeStruct);
-    }
-    setTimeStructTextCenter(timeStructs, labelAlign, maxViewDuration_MILLIS);
-    return timeStructs;
-  }
-  function createTimeStructsAbsolute(timeAxis, factory, timeZone, tickTimes_PMILLIS, labelAlign) {
-    var dMin_PMILLIS = timeAxis.tMin_PMILLIS;
-    var dMax_PMILLIS = timeAxis.tMax_PMILLIS;
-    var timeStructs = [];
-    var maxViewDuration_MILLIS = Number.NEGATIVE_INFINITY;
-    var previous_PMILLIS = null;
-    for (var n = 0; n < tickTimes_PMILLIS.length; n++) {
-      var tickTime_PMILLIS = tickTimes_PMILLIS[n];
-      var timeStruct = factory();
-      var m = timeStruct.setTime(tickTime_PMILLIS, timeZone);
-      var start_PMILLIS = m.valueOf();
-      if (webglext2.hasval(previous_PMILLIS) && start_PMILLIS === previous_PMILLIS)
-        continue;
-      previous_PMILLIS = start_PMILLIS;
-      timeStruct.start_PMILLIS = start_PMILLIS;
-      timeStruct.incrementTime(m);
-      timeStruct.end_PMILLIS = m.valueOf();
-      timeStruct.viewStart_PMILLIS = webglext2.clamp(timeStruct.start_PMILLIS, timeStruct.end_PMILLIS, dMin_PMILLIS);
-      timeStruct.viewEnd_PMILLIS = webglext2.clamp(timeStruct.start_PMILLIS, timeStruct.end_PMILLIS, dMax_PMILLIS);
-      maxViewDuration_MILLIS = Math.max(maxViewDuration_MILLIS, timeStruct.viewEnd_PMILLIS - timeStruct.viewStart_PMILLIS);
-      timeStructs.push(timeStruct);
-    }
-    setTimeStructTextCenter(timeStructs, labelAlign, maxViewDuration_MILLIS);
-    return timeStructs;
-  }
-  function setTimeStructTextCenter(timeStructs, labelAlign, maxViewDuration_MILLIS) {
-    for (var n = 0; n < timeStructs.length; n++) {
-      var timeStruct = timeStructs[n];
-      var duration_MILLIS = timeStruct.viewEnd_PMILLIS - timeStruct.viewStart_PMILLIS;
-      var midpoint_PMILLIS = timeStruct.viewStart_PMILLIS + labelAlign * duration_MILLIS;
-      var edge_PMILLIS = timeStruct.viewStart_PMILLIS === timeStruct.start_PMILLIS ? timeStruct.viewEnd_PMILLIS : timeStruct.viewStart_PMILLIS;
-      var edginess = 1 - webglext2.clamp(0, 1, duration_MILLIS / maxViewDuration_MILLIS);
-      timeStruct.textCenter_PMILLIS = midpoint_PMILLIS + edginess * (edge_PMILLIS - midpoint_PMILLIS);
-    }
-  }
-  function getTickTimes_PMILLIS(timeAxis, sizePixels, tickSpacing, timeZone, referenceDate_PMILLIS) {
-    if (webglext2.hasval(referenceDate_PMILLIS)) {
-      return getTickTimesRelative_PMILLIS(timeAxis, sizePixels, tickSpacing, referenceDate_PMILLIS);
-    } else {
-      return getTickTimesAbsolute_PMILLIS(timeAxis, sizePixels, tickSpacing, timeZone);
-    }
+    var approxTickInterval_MILLIS = tickSpacings * (dMax_PMILLIS - dMin_PMILLIS) / sizePixels;
+    return getHourTickTimesRelative_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, 0);
   }
   webglext2.getTickTimes_PMILLIS = getTickTimes_PMILLIS;
-  function getTickTimesRelative_PMILLIS(timeAxis, sizePixels, tickSpacing, referenceDate_PMILLIS) {
-    var dMin_PMILLIS = timeAxis.tMin_PMILLIS;
-    var dMax_PMILLIS = timeAxis.tMax_PMILLIS;
-    var approxTickInterval_MILLIS = tickSpacing * (dMax_PMILLIS - dMin_PMILLIS) / sizePixels;
-    if (approxTickInterval_MILLIS < webglext2.daysToMillis(1)) {
-      return getHourTickTimesRelative_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, referenceDate_PMILLIS);
-    } else {
-      return getDayTickTimesRelative_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, sizePixels, tickSpacing, referenceDate_PMILLIS);
-    }
-  }
   function getHourTickTimesRelative_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, referenceDate_PMILLIS) {
-    var tickTimes = getHourTickTimes_PMILLIS(dMin_PMILLIS - referenceDate_PMILLIS, dMax_PMILLIS - referenceDate_PMILLIS, approxTickInterval_MILLIS, 0);
+    var tickTimes = getHourTickTimes_PMILLIS(dMin_PMILLIS - referenceDate_PMILLIS, dMax_PMILLIS - referenceDate_PMILLIS, approxTickInterval_MILLIS);
     for (var n = 0; n < tickTimes.length; n++) {
       tickTimes[n] = tickTimes[n] + referenceDate_PMILLIS;
     }
     return tickTimes;
   }
-  function getDayTickTimesRelative_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, sizePixels, tickSpacing, referenceDate_PMILLIS) {
-    var axis = new webglext2.Axis1D(webglext2.millisToDays(dMin_PMILLIS - referenceDate_PMILLIS), webglext2.millisToDays(dMax_PMILLIS - referenceDate_PMILLIS));
-    var approxNumTicks = sizePixels / tickSpacing;
-    var tickInterval = webglext2.getTickInterval(axis, approxNumTicks);
-    var tickCount = webglext2.getTickCount(axis, tickInterval);
-    var tickPositions = new Float32Array(tickCount);
-    webglext2.getTickPositions(axis, tickInterval, tickCount, tickPositions);
-    var tickTimes_PMILLIS = [];
-    for (var n = 0; n < tickCount; n++) {
-      tickTimes_PMILLIS.push(webglext2.daysToMillis(tickPositions[n]) + referenceDate_PMILLIS);
-    }
-    return tickTimes_PMILLIS;
-  }
-  function getTickTimesAbsolute_PMILLIS(timeAxis, sizePixels, tickSpacing, timeZone) {
-    var dMin_PMILLIS = timeAxis.tMin_PMILLIS;
-    var dMax_PMILLIS = timeAxis.tMax_PMILLIS;
-    var mMin = moment(dMin_PMILLIS).zone(timeZone);
-    var zoneOffset_MILLIS = -webglext2.minutesToMillis(mMin.zone());
-    var approxTickInterval_MILLIS = tickSpacing * (dMax_PMILLIS - dMin_PMILLIS) / sizePixels;
-    if (approxTickInterval_MILLIS > webglext2.daysToMillis(60)) {
-      return getYearTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, timeZone);
-    } else if (approxTickInterval_MILLIS > webglext2.daysToMillis(10)) {
-      return getMonthTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, timeZone);
-    } else if (approxTickInterval_MILLIS > webglext2.daysToMillis(1)) {
-      return getDayTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, timeZone);
-    } else {
-      return getHourTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, zoneOffset_MILLIS);
-    }
-  }
-  function getYearTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, timeZone) {
-    var m = moment(dMin_PMILLIS).zone(timeZone);
-    var currentYear = m.year();
-    var daysPerYear = 365.25;
-    var approxTickInterval_YEARS = webglext2.millisToDays(approxTickInterval_MILLIS) / daysPerYear;
-    var yearOrderFactor = 6;
-    var stepYears = getYearStep(approxTickInterval_YEARS * yearOrderFactor);
-    var startYear = getRoundedYear(currentYear, stepYears);
-    m.year(startYear).month(0).date(1).hours(0).minutes(0).seconds(0).milliseconds(0);
-    var tickTimes_PMILLIS = [];
-    while (m.valueOf() <= dMax_PMILLIS) {
-      tickTimes_PMILLIS.push(m.valueOf());
-      m.add("years", stepYears);
-    }
-    return tickTimes_PMILLIS;
-  }
-  function getYearStep(spanYears) {
-    var log10 = Math.log(spanYears) / Math.LN10;
-    var order = Math.floor(log10);
-    if (log10 - order > 1 - 1e-12)
-      order++;
-    return Math.max(1, Math.pow(10, order));
-  }
-  function getRoundedYear(currentYear, yearStep) {
-    var numSteps = Math.floor(currentYear / yearStep);
-    return numSteps * yearStep;
-  }
-  function getMonthTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, timeZone) {
-    var m = moment(dMin_PMILLIS).zone(timeZone).date(1).hours(0).minutes(0).seconds(0).milliseconds(0);
-    var tickTimes_PMILLIS = [];
-    while (m.valueOf() <= dMax_PMILLIS) {
-      tickTimes_PMILLIS.push(m.valueOf());
-      m.add("months", 1);
-    }
-    return tickTimes_PMILLIS;
-  }
-  function getDayTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, timeZone) {
-    var tickInterval_DAYS = calculateTickInterval_DAYS(approxTickInterval_MILLIS);
-    var m = moment(dMin_PMILLIS).zone(timeZone).date(1).hours(0).minutes(0).seconds(0).milliseconds(0);
-    var endTime_PMILLIS = dMax_PMILLIS + webglext2.daysToMillis(tickInterval_DAYS);
-    var currentMonth = m.month();
-    var tickTimes_PMILLIS = [];
-    while (m.valueOf() <= endTime_PMILLIS) {
-      var newMonth = m.month();
-      if (newMonth !== currentMonth) {
-        m.date(1);
-        currentMonth = newMonth;
-      }
-      var maxDom = m.clone().endOf("month").date();
-      var dom = m.date();
-      if (maxDom - dom + 1 >= tickInterval_DAYS / 2) {
-        tickTimes_PMILLIS.push(m.valueOf());
-      }
-      m.add("days", tickInterval_DAYS);
-    }
-    return tickTimes_PMILLIS;
-  }
-  function getHourTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS, zoneOffset_MILLIS) {
+  function getHourTickTimes_PMILLIS(dMin_PMILLIS, dMax_PMILLIS, approxTickInterval_MILLIS) {
     var tickInterval_MILLIS = calculateTickInterval_MILLIS(approxTickInterval_MILLIS);
-    var ticksSince1970 = Math.floor((dMin_PMILLIS + zoneOffset_MILLIS) / tickInterval_MILLIS);
-    var firstTick_PMILLIS = ticksSince1970 * tickInterval_MILLIS - zoneOffset_MILLIS;
+    var ticksSince1970 = Math.floor(dMin_PMILLIS / tickInterval_MILLIS);
+    var firstTick_PMILLIS = ticksSince1970 * tickInterval_MILLIS;
     var numTicks = Math.ceil(1 + (dMax_PMILLIS - firstTick_PMILLIS) / tickInterval_MILLIS);
     var tickTimes_PMILLIS = [];
     for (var n = 0; n < numTicks; n++) {
-      tickTimes_PMILLIS.push(firstTick_PMILLIS + n * tickInterval_MILLIS);
+      var data = firstTick_PMILLIS + n * tickInterval_MILLIS;
+      if (data < 0)
+        continue;
+      tickTimes_PMILLIS.push(data);
     }
     return tickTimes_PMILLIS;
   }
-  var tickIntervalRungs_DAYS = [2, 3, 4, 5, 8, 10];
-  function calculateTickInterval_DAYS(approxTickInterval_MILLIS) {
-    var approxTickInterval_DAYS = webglext2.millisToDays(approxTickInterval_MILLIS);
-    for (var n = 0; n < tickIntervalRungs_DAYS.length; n++) {
-      if (approxTickInterval_DAYS <= tickIntervalRungs_DAYS[n]) {
-        return tickIntervalRungs_DAYS[n];
-      }
-    }
-    return 10;
-  }
   var tickIntervalRungs_MILLIS = [
+    10,
+    20,
+    50,
+    100,
+    200,
+    300,
+    400,
+    500,
     webglext2.secondsToMillis(1),
     webglext2.secondsToMillis(2),
     webglext2.secondsToMillis(5),
@@ -6350,12 +6033,7 @@ var webglext;
     webglext2.minutesToMillis(15),
     webglext2.minutesToMillis(20),
     webglext2.minutesToMillis(30),
-    webglext2.hoursToMillis(1),
-    webglext2.hoursToMillis(2),
-    webglext2.hoursToMillis(3),
-    webglext2.hoursToMillis(6),
-    webglext2.hoursToMillis(12),
-    webglext2.daysToMillis(1)
+    webglext2.hoursToMillis(1)
   ];
   function calculateTickInterval_MILLIS(approxTickInterval_MILLIS) {
     for (var n = 0; n < tickIntervalRungs_MILLIS.length; n++) {
@@ -6363,58 +6041,15 @@ var webglext;
         return tickIntervalRungs_MILLIS[n];
       }
     }
-    return webglext2.daysToMillis(1);
+    return webglext2.secondsToMillis(1);
   }
   function getTickInterval_MILLIS(tickTimes_PMILLIS) {
-    if (webglext2.hasval(tickTimes_PMILLIS) && tickTimes_PMILLIS.length > 1) {
+    if (webglext2.isNotEmpty(tickTimes_PMILLIS) && tickTimes_PMILLIS.length > 1) {
       return tickTimes_PMILLIS[1] - tickTimes_PMILLIS[0];
     } else {
       return webglext2.secondsToMillis(1);
     }
   }
-})(webglext || (webglext = {}));
-var webglext;
-(function(webglext2) {
-  function newTimeGridPainter(timeAxis, isVerticalAxis, timeZone, options) {
-    var tickSpacing = webglext2.hasval(options) && webglext2.hasval(options.tickSpacing) ? options.tickSpacing : 60;
-    var gridColor = webglext2.hasval(options) && webglext2.hasval(options.gridColor) ? options.gridColor : webglext2.black;
-    var referenceDate_PMILLIS = webglext2.hasval(options) && webglext2.hasval(options.referenceDate) ? webglext2.parseTime_PMILLIS(options.referenceDate) : void 0;
-    var program = new webglext2.Program(webglext2.xyFrac_VERTSHADER, webglext2.solid_FRAGSHADER);
-    var u_Color = new webglext2.UniformColor(program, "u_Color");
-    var a_XyFrac = new webglext2.Attribute(program, "a_XyFrac");
-    var xyFrac = new Float32Array(0);
-    var xyFracBuffer = webglext2.newDynamicBuffer();
-    return function(gl, viewport) {
-      var tickTimes_PMILLIS = webglext2.getTickTimes_PMILLIS(timeAxis, isVerticalAxis ? viewport.h : viewport.w, tickSpacing, timeZone, referenceDate_PMILLIS);
-      var tickCount = tickTimes_PMILLIS.length;
-      program.use(gl);
-      u_Color.setData(gl, gridColor);
-      xyFrac = webglext2.ensureCapacityFloat32(xyFrac, 4 * tickCount);
-      for (var n = 0; n < tickCount; n++) {
-        var tFrac = timeAxis.tFrac(tickTimes_PMILLIS[n]);
-        if (isVerticalAxis) {
-          tFrac = (Math.floor(tFrac * viewport.h) + 0.5) / viewport.h;
-          xyFrac[4 * n + 0] = 0;
-          xyFrac[4 * n + 1] = tFrac;
-          xyFrac[4 * n + 2] = 1;
-          xyFrac[4 * n + 3] = tFrac;
-        } else {
-          tFrac = (Math.floor(tFrac * viewport.w + 1e-4) + 0.5) / viewport.w;
-          xyFrac[4 * n + 0] = tFrac;
-          xyFrac[4 * n + 1] = 0;
-          xyFrac[4 * n + 2] = tFrac;
-          xyFrac[4 * n + 3] = 1;
-        }
-      }
-      xyFracBuffer.setData(xyFrac.subarray(0, 4 * tickCount));
-      a_XyFrac.setDataAndEnable(gl, xyFracBuffer, 2, webglext2.GL.FLOAT);
-      gl.lineWidth(1);
-      gl.drawArrays(webglext2.GL.LINES, 0, 2 * tickCount);
-      a_XyFrac.disable(gl);
-      program.endUse(gl);
-    };
-  }
-  webglext2.newTimeGridPainter = newTimeGridPainter;
 })(webglext || (webglext = {}));
 var webglext;
 (function(webglext2) {
@@ -6482,8 +6117,8 @@ var webglext;
     });
     TimelineCursorModel2.prototype.setAttrs = function(cursor) {
       this._labeledTimeseriesGuids = new webglext2.OrderedStringSet(cursor.labeledTimeseriesGuids || []);
-      this._lineColor = webglext2.hasval(cursor.lineColor) ? webglext2.parseCssColor(cursor.lineColor) : null;
-      this._textColor = webglext2.hasval(cursor.textColor) ? webglext2.parseCssColor(cursor.textColor) : null;
+      this._lineColor = webglext2.isNotEmpty(cursor.lineColor) ? webglext2.parseCssColor(cursor.lineColor) : null;
+      this._textColor = webglext2.isNotEmpty(cursor.textColor) ? webglext2.parseCssColor(cursor.textColor) : null;
       this._showVerticalLine = cursor.showVerticalLine;
       this._showHorizontalLine = cursor.showHorizontalLine;
       this._showCursorText = cursor.showCursorText;
@@ -6493,8 +6128,8 @@ var webglext;
       return {
         cursorGuid: this._cursorGuid,
         labeledTimeseriesGuids: this._labeledTimeseriesGuids.toArray(),
-        lineColor: webglext2.hasval(this._lineColor) ? this._lineColor.cssString : null,
-        textColor: webglext2.hasval(this._textColor) ? this._textColor.cssString : null,
+        lineColor: webglext2.isNotEmpty(this._lineColor) ? this._lineColor.cssString : null,
+        textColor: webglext2.isNotEmpty(this._textColor) ? this._textColor.cssString : null,
         showVerticalLine: this._showVerticalLine,
         showHorizontalLine: this._showHorizontalLine,
         showCursorText: this._showCursorText
@@ -6583,7 +6218,7 @@ var webglext;
       configurable: true
     });
     TimelineAnnotationModel2.prototype.setAttrs = function(annotation) {
-      this._time_PMILLIS = webglext2.hasval(annotation.time_ISO8601) ? webglext2.parseTime_PMILLIS(annotation.time_ISO8601) : void 0;
+      this._time_PMILLIS = webglext2.isNotEmpty(annotation.time_ISO8601) ? webglext2.parseTime_PMILLIS(annotation.time_ISO8601) : void 0;
       this._y = annotation.y;
       this._label = annotation.label;
       this._styleGuid = annotation.styleGuid;
@@ -6601,322 +6236,62 @@ var webglext;
     return TimelineAnnotationModel2;
   }();
   webglext2.TimelineAnnotationModel = TimelineAnnotationModel;
-  var TimelineTimeseriesModel = function() {
-    function TimelineTimeseriesModel2(timeseries) {
-      this._timeseriesGuid = timeseries.timeseriesGuid;
-      this._attrsChanged = new webglext2.Notification();
-      this.setAttrs(timeseries);
-      this._fragmentGuids = new webglext2.OrderedStringSet(timeseries.fragmentGuids || []);
-    }
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "timeseriesGuid", {
-      get: function() {
-        return this._timeseriesGuid;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "attrsChanged", {
-      get: function() {
-        return this._attrsChanged;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    TimelineTimeseriesModel2.prototype.setAttrs = function(timeseries) {
-      this._uiHint = timeseries.uiHint;
-      this._baseline = timeseries.baseline;
-      this._lineColor = webglext2.hasval(timeseries.lineColor) ? webglext2.parseCssColor(timeseries.lineColor) : null;
-      this._pointColor = webglext2.hasval(timeseries.pointColor) ? webglext2.parseCssColor(timeseries.pointColor) : null;
-      this._lineThickness = timeseries.lineThickness;
-      this._pointSize = timeseries.pointSize;
-      this._fragmentGuids = new webglext2.OrderedStringSet(timeseries.fragmentGuids || []);
-      this._attrsChanged.fire();
-    };
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "baseline", {
-      get: function() {
-        return this._baseline;
-      },
-      set: function(baseline) {
-        if (baseline !== this._baseline) {
-          this._baseline = baseline;
-          this._attrsChanged.fire();
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "lineColor", {
-      get: function() {
-        return this._lineColor;
-      },
-      set: function(lineColor) {
-        if (lineColor !== this._lineColor) {
-          this._lineColor = lineColor;
-          this._attrsChanged.fire();
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "pointColor", {
-      get: function() {
-        return this._pointColor;
-      },
-      set: function(pointColor) {
-        if (pointColor !== this._pointColor) {
-          this._pointColor = pointColor;
-          this._attrsChanged.fire();
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "lineThickness", {
-      get: function() {
-        return this._lineThickness;
-      },
-      set: function(lineThickness) {
-        if (lineThickness !== this._lineThickness) {
-          this._lineThickness = lineThickness;
-          this._attrsChanged.fire();
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "pointSize", {
-      get: function() {
-        return this._pointSize;
-      },
-      set: function(pointSize) {
-        if (pointSize !== this._pointSize) {
-          this._pointSize = pointSize;
-          this._attrsChanged.fire();
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "uiHint", {
-      get: function() {
-        return this._uiHint;
-      },
-      set: function(uiHint) {
-        if (uiHint !== this._uiHint) {
-          this._uiHint = uiHint;
-          this._attrsChanged.fire();
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesModel2.prototype, "fragmentGuids", {
-      get: function() {
-        return this._fragmentGuids;
-      },
-      set: function(fragmentGuids) {
-        if (fragmentGuids !== this._fragmentGuids) {
-          this._fragmentGuids = fragmentGuids;
-          this._attrsChanged.fire();
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    TimelineTimeseriesModel2.prototype.snapshot = function() {
-      return {
-        timeseriesGuid: this._timeseriesGuid,
-        uiHint: this._uiHint,
-        baseline: this._baseline,
-        lineColor: webglext2.hasval(this._lineColor) ? this._lineColor.cssString : null,
-        pointColor: webglext2.hasval(this._pointColor) ? this._pointColor.cssString : null,
-        lineThickness: this._lineThickness,
-        pointSize: this._pointSize,
-        fragmentGuids: this._fragmentGuids.toArray()
-      };
-    };
-    return TimelineTimeseriesModel2;
-  }();
-  webglext2.TimelineTimeseriesModel = TimelineTimeseriesModel;
-  var TimelineTimeseriesFragmentModel = function() {
-    function TimelineTimeseriesFragmentModel2(fragment) {
-      this._fragmentGuid = fragment.fragmentGuid;
-      this._attrsChanged = new webglext2.Notification();
-      this._dataChanged = new webglext2.Notification2();
-      this.setAttrs(fragment);
-    }
-    Object.defineProperty(TimelineTimeseriesFragmentModel2.prototype, "fragmentGuid", {
-      get: function() {
-        return this._fragmentGuid;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesFragmentModel2.prototype, "dataChanged", {
-      get: function() {
-        return this._dataChanged;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    TimelineTimeseriesFragmentModel2.prototype.setAttrs = function(fragment) {
-      this._userEditMode = fragment.userEditMode;
-      this._times_PMILLIS = webglext2.hasval(fragment.times_ISO8601) ? fragment.times_ISO8601.map(webglext2.parseTime_PMILLIS) : [];
-      this._data = webglext2.hasval(fragment.data) ? fragment.data.slice() : [];
-      this._dataChanged.fire(0, this._data.length);
-      this._attrsChanged.fire();
-    };
-    Object.defineProperty(TimelineTimeseriesFragmentModel2.prototype, "data", {
-      get: function() {
-        return this._data;
-      },
-      set: function(data) {
-        if (data !== this._data) {
-          this._data = data;
-          this._dataChanged.fire(0, this._data.length);
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesFragmentModel2.prototype, "times_PMILLIS", {
-      get: function() {
-        return this._times_PMILLIS;
-      },
-      set: function(times_PMILLIS) {
-        if (times_PMILLIS !== this._times_PMILLIS) {
-          this._times_PMILLIS = times_PMILLIS;
-          this._dataChanged.fire(0, this._data.length);
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    TimelineTimeseriesFragmentModel2.prototype.setAllData = function(data, times_PMILLIS) {
-      if (data !== this._data || times_PMILLIS !== this._times_PMILLIS) {
-        this._data = data;
-        this._times_PMILLIS = times_PMILLIS;
-        this._dataChanged.fire(0, this._data.length);
-      }
-    };
-    TimelineTimeseriesFragmentModel2.prototype.setData = function(index, value, time) {
-      if (this._data[index] !== value || webglext2.hasval(time) && this._times_PMILLIS[index] !== time) {
-        if (webglext2.hasval(time)) {
-          if ((index === 0 || time > this._times_PMILLIS[index - 1]) && (index === this._times_PMILLIS.length - 1 || time < this._times_PMILLIS[index + 1])) {
-            this._times_PMILLIS[index] = time;
-            this._data[index] = value;
-            this._dataChanged.fire(index, index + 1);
-          } else {
-            this._times_PMILLIS.splice(index, 1);
-            this._data.splice(index, 1);
-            index = webglext2.indexOf(this._times_PMILLIS, time);
-            if (index < 0)
-              index = -index - 1;
-            this._times_PMILLIS.splice(index, 0, time);
-            this._data.splice(index, 0, value);
-            this._dataChanged.fire(index, index + 1);
-          }
-        } else {
-          this._data[index] = value;
-          this._dataChanged.fire(index, index + 1);
-        }
-      }
-      return index;
-    };
-    Object.defineProperty(TimelineTimeseriesFragmentModel2.prototype, "start_PMILLIS", {
-      get: function() {
-        return this._times_PMILLIS[0];
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesFragmentModel2.prototype, "end_PMILLIS", {
-      get: function() {
-        return this._times_PMILLIS.slice(-1)[0];
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesFragmentModel2.prototype, "userEditMode", {
-      get: function() {
-        return this._userEditMode;
-      },
-      set: function(userEditMode) {
-        if (userEditMode !== this._userEditMode) {
-          this._userEditMode = userEditMode;
-          this._attrsChanged.fire();
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    TimelineTimeseriesFragmentModel2.prototype.snapshot = function() {
-      return {
-        userEditMode: this._userEditMode,
-        fragmentGuid: this._fragmentGuid,
-        data: this._data.slice(),
-        times_ISO8601: this._times_PMILLIS.map(webglext2.formatTime_ISO8601)
-      };
-    };
-    return TimelineTimeseriesFragmentModel2;
-  }();
-  webglext2.TimelineTimeseriesFragmentModel = TimelineTimeseriesFragmentModel;
-  var TimelineEventModel = function() {
-    function TimelineEventModel2(event) {
+  var TimelineTrackModel = function() {
+    function TimelineTrackModel2(event) {
       this._eventGuid = event.eventGuid;
       this._attrsChanged = new webglext2.Notification();
       this.setAttrs(event);
     }
-    Object.defineProperty(TimelineEventModel2.prototype, "eventGuid", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "eventGuid", {
       get: function() {
         return this._eventGuid;
       },
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "attrsChanged", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "attrsChanged", {
       get: function() {
         return this._attrsChanged;
       },
       enumerable: false,
       configurable: true
     });
-    TimelineEventModel2.prototype.setAttrs = function(event) {
-      this._startLimit_PMILLIS = webglext2.hasval(event.startLimit_ISO8601) ? webglext2.parseTime_PMILLIS(event.startLimit_ISO8601) : null;
-      this._endLimit_PMILLIS = webglext2.hasval(event.endLimit_ISO8601) ? webglext2.parseTime_PMILLIS(event.endLimit_ISO8601) : null;
-      this._start_PMILLIS = webglext2.parseTime_PMILLIS(event.start_ISO8601);
-      this._end_PMILLIS = webglext2.parseTime_PMILLIS(event.end_ISO8601);
+    TimelineTrackModel2.prototype.setAttrs = function(event) {
+      this._startLimit_PMILLIS = webglext2.isNotEmpty(event.startLimit_ISO8601) ? webglext2.parseTime_PMILLIS(event.startLimit_ISO8601) : null;
+      this._endLimit_PMILLIS = webglext2.isNotEmpty(event.endLimit_ISO8601) ? webglext2.parseTime_PMILLIS(event.endLimit_ISO8601) : null;
+      this._start_PMILLIS = webglext2.parseTime_PMILLIS(event.start_time);
+      this._end_PMILLIS = webglext2.parseTime_PMILLIS(event.end_time);
       this._label = event.label;
       this._labelIcon = event.labelIcon;
-      this._userEditable = webglext2.hasval(event.userEditable) ? event.userEditable : false;
+      this._userEditable = webglext2.isNotEmpty(event.userEditable) ? event.userEditable : false;
       this._styleGuid = event.styleGuid;
       this._order = event.order;
       this._topMargin = event.topMargin;
       this._bottomMargin = event.bottomMargin;
-      this._fgColor = webglext2.hasval(event.fgColor) ? webglext2.parseCssColor(event.fgColor) : null;
-      this._bgColor = webglext2.hasval(event.bgColor) ? webglext2.parseCssColor(event.bgColor) : null;
-      this._bgSecondaryColor = webglext2.hasval(event.bgSecondaryColor) ? webglext2.parseCssColor(event.bgSecondaryColor) : null;
-      this._borderColor = webglext2.hasval(event.borderColor) ? webglext2.parseCssColor(event.borderColor) : null;
-      this._borderSecondaryColor = webglext2.hasval(event.borderSecondaryColor) ? webglext2.parseCssColor(event.borderSecondaryColor) : null;
+      this._fgColor = webglext2.isNotEmpty(event.fgColor) ? webglext2.parseCssColor(event.fgColor) : null;
+      this._bgColor = webglext2.isNotEmpty(event.bgColor) ? webglext2.parseCssColor(event.bgColor) : null;
+      this._bgSecondaryColor = webglext2.isNotEmpty(event.bgSecondaryColor) ? webglext2.parseCssColor(event.bgSecondaryColor) : null;
+      this._borderColor = webglext2.isNotEmpty(event.borderColor) ? webglext2.parseCssColor(event.borderColor) : null;
+      this._borderSecondaryColor = webglext2.isNotEmpty(event.borderSecondaryColor) ? webglext2.parseCssColor(event.borderSecondaryColor) : null;
       this._labelTopMargin = event.labelTopMargin;
       this._labelBottomMargin = event.labelBottomMargin;
       this._labelVAlign = event.labelVAlign;
       this._labelVPos = event.labelVPos;
       this._labelHAlign = event.labelHAlign;
       this._labelHPos = event.labelHPos;
-      this._isBorderDashed = webglext2.hasval(event.isBorderDashed) ? event.isBorderDashed : false;
-      this._fillPattern = webglext2.hasval(event.fillPattern) ? webglext2.FillPattern[event.fillPattern] : webglext2.FillPattern.solid;
+      this._isBorderDashed = webglext2.isNotEmpty(event.isBorderDashed) ? event.isBorderDashed : false;
+      this._fillPattern = webglext2.isNotEmpty(event.fillPattern) ? webglext2.FillPattern[event.fillPattern] : webglext2.FillPattern.solid;
       this._attrsChanged.fire();
     };
-    TimelineEventModel2.prototype.setInterval = function(start_PMILLIS, end_PMILLIS) {
+    TimelineTrackModel2.prototype.setInterval = function(start_PMILLIS, end_PMILLIS) {
       if (start_PMILLIS !== this._start_PMILLIS || end_PMILLIS !== this._end_PMILLIS) {
         var initial_start_PMILLIS = this._start_PMILLIS;
         var initial_end_PMILLIS = this._end_PMILLIS;
-        var underStartLimit = webglext2.hasval(this._startLimit_PMILLIS) && start_PMILLIS < this._startLimit_PMILLIS;
-        var overEndLimit = webglext2.hasval(this._endLimit_PMILLIS) && end_PMILLIS > this._endLimit_PMILLIS;
+        var underStartLimit = webglext2.isNotEmpty(this._startLimit_PMILLIS) && start_PMILLIS < this._startLimit_PMILLIS;
+        var overEndLimit = webglext2.isNotEmpty(this._endLimit_PMILLIS) && end_PMILLIS > this._endLimit_PMILLIS;
         var duration_PMILLIS = end_PMILLIS - start_PMILLIS;
         var durationLimit_PMILLIS = this._endLimit_PMILLIS - this._startLimit_PMILLIS;
-        if (webglext2.hasval(this._startLimit_PMILLIS) && webglext2.hasval(this._endLimit_PMILLIS) && durationLimit_PMILLIS < duration_PMILLIS) {
+        if (webglext2.isNotEmpty(this._startLimit_PMILLIS) && webglext2.isNotEmpty(this._endLimit_PMILLIS) && durationLimit_PMILLIS < duration_PMILLIS) {
           this._start_PMILLIS = this._startLimit_PMILLIS;
           this._end_PMILLIS = this._endLimit_PMILLIS;
         } else if (underStartLimit) {
@@ -6934,13 +6309,13 @@ var webglext;
         }
       }
     };
-    TimelineEventModel2.prototype.limit_start_PMILLIS = function(start_PMILLIS) {
-      return webglext2.hasval(this._startLimit_PMILLIS) ? Math.max(start_PMILLIS, this._startLimit_PMILLIS) : start_PMILLIS;
+    TimelineTrackModel2.prototype.limit_start_PMILLIS = function(start_PMILLIS) {
+      return webglext2.isNotEmpty(this._startLimit_PMILLIS) ? Math.max(start_PMILLIS, this._startLimit_PMILLIS) : start_PMILLIS;
     };
-    TimelineEventModel2.prototype.limit_end_PMILLIS = function(end_PMILLIS) {
-      return webglext2.hasval(this._endLimit_PMILLIS) ? Math.min(end_PMILLIS, this._endLimit_PMILLIS) : end_PMILLIS;
+    TimelineTrackModel2.prototype.limit_end_PMILLIS = function(end_PMILLIS) {
+      return webglext2.isNotEmpty(this._endLimit_PMILLIS) ? Math.min(end_PMILLIS, this._endLimit_PMILLIS) : end_PMILLIS;
     };
-    Object.defineProperty(TimelineEventModel2.prototype, "start_PMILLIS", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "start_PMILLIS", {
       get: function() {
         return this._start_PMILLIS;
       },
@@ -6953,7 +6328,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "end_PMILLIS", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "end_PMILLIS", {
       get: function() {
         return this._end_PMILLIS;
       },
@@ -6966,7 +6341,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "startLimit_PMILLIS", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "startLimit_PMILLIS", {
       get: function() {
         return this._startLimit_PMILLIS;
       },
@@ -6980,7 +6355,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "endLimit_PMILLIS", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "endLimit_PMILLIS", {
       get: function() {
         return this._endLimit_PMILLIS;
       },
@@ -6994,7 +6369,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "label", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "label", {
       get: function() {
         return this._label;
       },
@@ -7007,7 +6382,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "labelIcon", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "labelIcon", {
       get: function() {
         return this._labelIcon;
       },
@@ -7020,7 +6395,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "userEditable", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "userEditable", {
       get: function() {
         return this._userEditable;
       },
@@ -7033,7 +6408,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "styleGuid", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "styleGuid", {
       get: function() {
         return this._styleGuid;
       },
@@ -7046,7 +6421,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "order", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "order", {
       get: function() {
         return this._order;
       },
@@ -7059,7 +6434,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "topMargin", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "topMargin", {
       get: function() {
         return this._topMargin;
       },
@@ -7072,7 +6447,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "bottomMargin", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "bottomMargin", {
       get: function() {
         return this._bottomMargin;
       },
@@ -7085,7 +6460,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "fgColor", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "fgColor", {
       get: function() {
         return this._fgColor;
       },
@@ -7098,7 +6473,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "bgColor", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "bgColor", {
       get: function() {
         return this._bgColor;
       },
@@ -7111,7 +6486,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "bgSecondaryColor", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "bgSecondaryColor", {
       get: function() {
         return this._bgSecondaryColor;
       },
@@ -7124,7 +6499,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "borderColor", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "borderColor", {
       get: function() {
         return this._borderColor;
       },
@@ -7137,7 +6512,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "borderSecondaryColor", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "borderSecondaryColor", {
       get: function() {
         return this._borderSecondaryColor;
       },
@@ -7150,7 +6525,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "labelTopMargin", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "labelTopMargin", {
       get: function() {
         return this._labelTopMargin;
       },
@@ -7163,7 +6538,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "labelBottomMargin", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "labelBottomMargin", {
       get: function() {
         return this._labelBottomMargin;
       },
@@ -7176,7 +6551,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "labelVAlign", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "labelVAlign", {
       get: function() {
         return this._labelVAlign;
       },
@@ -7189,7 +6564,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "labelVPos", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "labelVPos", {
       get: function() {
         return this._labelVPos;
       },
@@ -7202,7 +6577,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "labelHAlign", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "labelHAlign", {
       get: function() {
         return this._labelHAlign;
       },
@@ -7215,7 +6590,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "labelHPos", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "labelHPos", {
       get: function() {
         return this._labelHPos;
       },
@@ -7228,7 +6603,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "isBorderDashed", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "isBorderDashed", {
       get: function() {
         return this._isBorderDashed;
       },
@@ -7241,7 +6616,7 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineEventModel2.prototype, "fillPattern", {
+    Object.defineProperty(TimelineTrackModel2.prototype, "fillPattern", {
       get: function() {
         return this._fillPattern;
       },
@@ -7254,13 +6629,13 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    TimelineEventModel2.prototype.snapshot = function() {
+    TimelineTrackModel2.prototype.snapshot = function() {
       return {
         eventGuid: this._eventGuid,
-        startLimit_ISO8601: webglext2.hasval(this._startLimit_PMILLIS) ? webglext2.formatTime_ISO8601(this._startLimit_PMILLIS) : null,
-        endLimit_ISO8601: webglext2.hasval(this._endLimit_PMILLIS) ? webglext2.formatTime_ISO8601(this._endLimit_PMILLIS) : null,
-        start_ISO8601: webglext2.formatTime_ISO8601(this._start_PMILLIS),
-        end_ISO8601: webglext2.formatTime_ISO8601(this._end_PMILLIS),
+        startLimit_ISO8601: webglext2.isNotEmpty(this._startLimit_PMILLIS) ? webglext2.formatTime_ISO8601(this._startLimit_PMILLIS) : null,
+        endLimit_ISO8601: webglext2.isNotEmpty(this._endLimit_PMILLIS) ? webglext2.formatTime_ISO8601(this._endLimit_PMILLIS) : null,
+        start_time: webglext2.formatTime_ISO8601(this._start_PMILLIS),
+        end_time: webglext2.formatTime_ISO8601(this._end_PMILLIS),
         label: this._label,
         labelIcon: this._labelIcon,
         userEditable: this._userEditable,
@@ -7268,11 +6643,11 @@ var webglext;
         order: this._order,
         topMargin: this._topMargin,
         bottomMargin: this._bottomMargin,
-        bgColor: webglext2.hasval(this._bgColor) ? this._bgColor.cssString : null,
-        bgSecondaryColor: webglext2.hasval(this._bgSecondaryColor) ? this._bgSecondaryColor.cssString : null,
-        fgColor: webglext2.hasval(this._fgColor) ? this._fgColor.cssString : null,
-        borderColor: webglext2.hasval(this._borderColor) ? this._borderColor.cssString : null,
-        borderSecondaryColor: webglext2.hasval(this._borderSecondaryColor) ? this.borderSecondaryColor.cssString : null,
+        bgColor: webglext2.isNotEmpty(this._bgColor) ? this._bgColor.cssString : null,
+        bgSecondaryColor: webglext2.isNotEmpty(this._bgSecondaryColor) ? this._bgSecondaryColor.cssString : null,
+        fgColor: webglext2.isNotEmpty(this._fgColor) ? this._fgColor.cssString : null,
+        borderColor: webglext2.isNotEmpty(this._borderColor) ? this._borderColor.cssString : null,
+        borderSecondaryColor: webglext2.isNotEmpty(this._borderSecondaryColor) ? this.borderSecondaryColor.cssString : null,
         labelTopMargin: this._labelTopMargin,
         labelBottomMargin: this._labelBottomMargin,
         labelVAlign: this._labelVAlign,
@@ -7283,15 +6658,15 @@ var webglext;
         fillPattern: webglext2.FillPattern[this._fillPattern]
       };
     };
-    return TimelineEventModel2;
+    return TimelineTrackModel2;
   }();
-  webglext2.TimelineEventModel = TimelineEventModel;
+  webglext2.TimelineTrackModel = TimelineTrackModel;
   var TimelineRowModel = function() {
     function TimelineRowModel2(row) {
       this._rowGuid = row.rowGuid;
       this._attrsChanged = new webglext2.Notification();
-      var min = webglext2.hasval(row.yMin) ? row.yMin : 0;
-      var max = webglext2.hasval(row.yMax) ? row.yMax : 1;
+      var min = webglext2.isNotEmpty(row.yMin) ? row.yMin : 0;
+      var max = webglext2.isNotEmpty(row.yMax) ? row.yMax : 1;
       this._dataAxis = new webglext2.Axis1D(min, max);
       this.setAttrs(row);
       this._eventGuids = new webglext2.OrderedStringSet(row.eventGuids || []);
@@ -7318,9 +6693,9 @@ var webglext;
       this._hidden = row.hidden;
       this._rowHeight = row.rowHeight;
       this._cursorGuid = row.cursorGuid;
-      this._bgColor = webglext2.hasval(row.bgColor) ? webglext2.parseCssColor(row.bgColor) : null;
-      this._fgLabelColor = webglext2.hasval(row.fgLabelColor) ? webglext2.parseCssColor(row.fgLabelColor) : null;
-      this._bgLabelColor = webglext2.hasval(row.bgLabelColor) ? webglext2.parseCssColor(row.bgLabelColor) : null;
+      this._bgColor = webglext2.isNotEmpty(row.bgColor) ? webglext2.parseCssColor(row.bgColor) : null;
+      this._fgLabelColor = webglext2.isNotEmpty(row.fgLabelColor) ? webglext2.parseCssColor(row.fgLabelColor) : null;
+      this._bgLabelColor = webglext2.isNotEmpty(row.bgLabelColor) ? webglext2.parseCssColor(row.bgLabelColor) : null;
       this._labelFont = row.labelFont;
       this._attrsChanged.fire();
     };
@@ -7478,9 +6853,9 @@ var webglext;
         timeseriesGuids: this._timeseriesGuids.toArray(),
         annotationGuids: this._annotationGuids.toArray(),
         cursorGuid: this._cursorGuid,
-        bgColor: webglext2.hasval(this._bgColor) ? this._bgColor.cssString : null,
-        bgLabelColor: webglext2.hasval(this._bgLabelColor) ? this._bgLabelColor.cssString : null,
-        fgLabelColor: webglext2.hasval(this._fgLabelColor) ? this._fgLabelColor.cssString : null,
+        bgColor: webglext2.isNotEmpty(this._bgColor) ? this._bgColor.cssString : null,
+        bgLabelColor: webglext2.isNotEmpty(this._bgLabelColor) ? this._bgLabelColor.cssString : null,
+        fgLabelColor: webglext2.isNotEmpty(this._fgLabelColor) ? this._fgLabelColor.cssString : null,
         labelFont: this._labelFont
       };
     };
@@ -7576,7 +6951,7 @@ var webglext;
         rollupGuid: this._rollupGuid,
         label: this._label,
         hidden: this._hidden,
-        collapsed: webglext2.hasval(this._collapsed) ? this._collapsed : false,
+        collapsed: webglext2.isNotEmpty(this._collapsed) ? this._collapsed : false,
         rowGuids: this._rowGuids.toArray()
       };
     };
@@ -7588,6 +6963,7 @@ var webglext;
       this._attrsChanged = new webglext2.Notification();
       this.setAttrs(root);
       this._groupGuids = new webglext2.OrderedStringSet(root.groupGuids);
+      this._rowGuids = new webglext2.OrderedStringSet();
       this._topPinnedRowGuids = new webglext2.OrderedStringSet(root.topPinnedRowGuids || []);
       this._bottomPinnedRowGuids = new webglext2.OrderedStringSet(root.bottomPinnedRowGuids || []);
       this._maximizedRowGuids = new webglext2.OrderedStringSet(root.maximizedRowGuids || []);
@@ -7605,6 +6981,13 @@ var webglext;
     Object.defineProperty(TimelineRootModel2.prototype, "groupGuids", {
       get: function() {
         return this._groupGuids;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    Object.defineProperty(TimelineRootModel2.prototype, "rowGuids", {
+      get: function() {
+        return this._rowGuids;
       },
       enumerable: false,
       configurable: true
@@ -7633,6 +7016,7 @@ var webglext;
     TimelineRootModel2.prototype.snapshot = function() {
       return {
         groupGuids: this._groupGuids.toArray(),
+        rowGuids: this._rowGuids.toArray(),
         topPinnedRowGuids: this._topPinnedRowGuids.toArray(),
         bottomPinnedRowGuids: this._bottomPinnedRowGuids.toArray(),
         maximizedRowGuids: this._maximizedRowGuids.toArray()
@@ -7643,56 +7027,42 @@ var webglext;
   webglext2.TimelineRootModel = TimelineRootModel;
   var TimelineModel = function() {
     function TimelineModel2(timeline) {
-      var cursors = webglext2.hasval(timeline) && webglext2.hasval(timeline.cursors) ? timeline.cursors : [];
+      var cursors = webglext2.isNotEmpty(timeline) && webglext2.isNotEmpty(timeline.cursors) ? timeline.cursors : [];
       this._cursors = new webglext2.OrderedSet([], function(g) {
         return g.cursorGuid;
       });
       for (var n = 0; n < cursors.length; n++) {
         this._cursors.add(new TimelineCursorModel(cursors[n]));
       }
-      var annotations = webglext2.hasval(timeline) && webglext2.hasval(timeline.annotations) ? timeline.annotations : [];
+      var annotations = webglext2.isNotEmpty(timeline) && webglext2.isNotEmpty(timeline.annotations) ? timeline.annotations : [];
       this._annotations = new webglext2.OrderedSet([], function(g) {
         return g.annotationGuid;
       });
       for (var n = 0; n < annotations.length; n++) {
         this._annotations.add(new TimelineAnnotationModel(annotations[n]));
       }
-      var timeseriesFragments = webglext2.hasval(timeline) && webglext2.hasval(timeline.timeseriesFragments) ? timeline.timeseriesFragments : [];
-      this._timeseriesFragments = new webglext2.OrderedSet([], function(e) {
-        return e.fragmentGuid;
-      });
-      for (var n = 0; n < timeseriesFragments.length; n++) {
-        this._timeseriesFragments.add(new TimelineTimeseriesFragmentModel(timeseriesFragments[n]));
-      }
-      var timeseries = webglext2.hasval(timeline) && webglext2.hasval(timeline.timeseries) ? timeline.timeseries : [];
-      this._timeseries = new webglext2.OrderedSet([], function(e) {
-        return e.timeseriesGuid;
-      });
-      for (var n = 0; n < timeseries.length; n++) {
-        this._timeseries.add(new TimelineTimeseriesModel(timeseries[n]));
-      }
-      var events = webglext2.hasval(timeline) && webglext2.hasval(timeline.events) ? timeline.events : [];
+      var events = webglext2.isNotEmpty(timeline) && webglext2.isNotEmpty(timeline.events) ? timeline.events : [];
       this._events = new webglext2.OrderedSet([], function(e) {
         return e.eventGuid;
       });
       for (var n = 0; n < events.length; n++) {
-        this._events.add(new TimelineEventModel(events[n]));
+        this._events.add(new TimelineTrackModel(events[n]));
       }
-      var rows = webglext2.hasval(timeline) && webglext2.hasval(timeline.rows) ? timeline.rows : [];
+      var rows = webglext2.isNotEmpty(timeline) && webglext2.isNotEmpty(timeline.rows) ? timeline.rows : [];
       this._rows = new webglext2.OrderedSet([], function(r) {
         return r.rowGuid;
       });
       for (var n = 0; n < rows.length; n++) {
         this._rows.add(new TimelineRowModel(rows[n]));
       }
-      var groups = webglext2.hasval(timeline) && webglext2.hasval(timeline.groups) ? timeline.groups : [];
+      var groups = webglext2.isNotEmpty(timeline) && webglext2.isNotEmpty(timeline.groups) ? timeline.groups : [];
       this._groups = new webglext2.OrderedSet([], function(g) {
         return g.groupGuid;
       });
       for (var n = 0; n < groups.length; n++) {
         this._groups.add(new TimelineGroupModel(groups[n]));
       }
-      var root = webglext2.hasval(timeline) && webglext2.hasval(timeline.root) ? timeline.root : newEmptyTimelineRoot();
+      var root = webglext2.isNotEmpty(timeline) && webglext2.isNotEmpty(timeline.root) ? timeline.root : newEmptyTimelineRoot();
       this._root = new TimelineRootModel(root);
     }
     Object.defineProperty(TimelineModel2.prototype, "cursors", {
@@ -7705,20 +7075,6 @@ var webglext;
     Object.defineProperty(TimelineModel2.prototype, "annotations", {
       get: function() {
         return this._annotations;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineModel2.prototype, "timeseriesFragments", {
-      get: function() {
-        return this._timeseriesFragments;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineModel2.prototype, "timeseriesSets", {
-      get: function() {
-        return this._timeseries;
       },
       enumerable: false,
       configurable: true
@@ -7757,12 +7113,6 @@ var webglext;
     TimelineModel2.prototype.annotation = function(annotationGuid) {
       return this._annotations.valueFor(annotationGuid);
     };
-    TimelineModel2.prototype.timeseriesFragment = function(fragmentGuid) {
-      return this._timeseriesFragments.valueFor(fragmentGuid);
-    };
-    TimelineModel2.prototype.timeseries = function(timeseriesGuid) {
-      return this._timeseries.valueFor(timeseriesGuid);
-    };
     TimelineModel2.prototype.event = function(eventGuid) {
       return this._events.valueFor(eventGuid);
     };
@@ -7784,7 +7134,7 @@ var webglext;
         var freshGroup = freshGroups[n];
         var groupGuid = freshGroup.groupGuid;
         var oldGroup = this._groups.valueFor(groupGuid);
-        if (webglext2.hasval(oldGroup)) {
+        if (webglext2.isNotEmpty(oldGroup)) {
           oldGroup.rowGuids.retainValues(freshGroup.rowGuids);
           retainedGroupGuids.push(groupGuid);
         }
@@ -7796,7 +7146,7 @@ var webglext;
         var freshRow = freshRows[n];
         var rowGuid = freshRow.rowGuid;
         var oldRow = this._rows.valueFor(rowGuid);
-        if (webglext2.hasval(oldRow)) {
+        if (webglext2.isNotEmpty(oldRow)) {
           oldRow.eventGuids.retainValues(freshRow.eventGuids || []);
           retainedRowGuids.push(rowGuid);
         }
@@ -7808,40 +7158,18 @@ var webglext;
         var freshEvent = freshEvents[n];
         var eventGuid = freshEvent.eventGuid;
         var oldEvent = this._events.valueFor(eventGuid);
-        if (webglext2.hasval(oldEvent)) {
+        if (webglext2.isNotEmpty(oldEvent)) {
           retainedEventGuids.push(eventGuid);
         }
       }
       this._events.retainIds(retainedEventGuids);
-      var freshTimeseriesSet = newTimeline.timeseries;
-      var retainedTimeseriesGuids = [];
-      for (var n = 0; n < freshTimeseriesSet.length; n++) {
-        var freshTimeseries = freshTimeseriesSet[n];
-        var timeseriesGuid = freshTimeseries.timeseriesGuid;
-        var oldTimeseries = this._timeseries.valueFor(timeseriesGuid);
-        if (webglext2.hasval(oldTimeseries)) {
-          retainedTimeseriesGuids.push(timeseriesGuid);
-        }
-      }
-      this._timeseries.retainIds(retainedTimeseriesGuids);
-      var freshTimeseriesFragments = newTimeline.timeseriesFragments;
-      var retainedTimeseriesFragmentGuids = [];
-      for (var n = 0; n < freshTimeseriesFragments.length; n++) {
-        var freshTimeseriesFragment = freshTimeseriesFragments[n];
-        var fragmentGuid = freshTimeseriesFragment.fragmentGuid;
-        var oldTimeseriesFragment = this._timeseriesFragments.valueFor(fragmentGuid);
-        if (webglext2.hasval(oldTimeseriesFragment)) {
-          retainedTimeseriesFragmentGuids.push(fragmentGuid);
-        }
-      }
-      this._timeseriesFragments.retainIds(retainedTimeseriesFragmentGuids);
       var freshAnnotations = newTimeline.annotations;
       var retainedAnnotationGuids = [];
       for (var n = 0; n < freshAnnotations.length; n++) {
         var freshAnnotation = freshAnnotations[n];
         var annotationGuid = freshAnnotation.annotationGuid;
         var oldAnnotation = this._annotations.valueFor(annotationGuid);
-        if (webglext2.hasval(oldAnnotation)) {
+        if (webglext2.isNotEmpty(oldAnnotation)) {
           retainedAnnotationGuids.push(annotationGuid);
         }
       }
@@ -7852,7 +7180,7 @@ var webglext;
         var freshCursor = freshCursors[n];
         var cursorGuid = freshCursor.cursorGuid;
         var oldCursor = this._cursors.valueFor(cursorGuid);
-        if (webglext2.hasval(oldCursor)) {
+        if (webglext2.isNotEmpty(oldCursor)) {
           retainedCursorGuids.push(cursorGuid);
         }
       }
@@ -7860,7 +7188,7 @@ var webglext;
       for (var n = 0; n < freshCursors.length; n++) {
         var freshCursor = freshCursors[n];
         var oldCursor = this._cursors.valueFor(freshCursor.cursorGuid);
-        if (webglext2.hasval(oldCursor)) {
+        if (webglext2.isNotEmpty(oldCursor)) {
           oldCursor.setAttrs(freshCursor);
         } else {
           this._cursors.add(new TimelineCursorModel(freshCursor));
@@ -7869,43 +7197,25 @@ var webglext;
       for (var n = 0; n < freshAnnotations.length; n++) {
         var freshAnnotation = freshAnnotations[n];
         var oldAnnotation = this._annotations.valueFor(freshAnnotation.annotationGuid);
-        if (webglext2.hasval(oldAnnotation)) {
+        if (webglext2.isNotEmpty(oldAnnotation)) {
           oldAnnotation.setAttrs(freshAnnotation);
         } else {
           this._annotations.add(new TimelineAnnotationModel(freshAnnotation));
         }
       }
-      for (var n = 0; n < freshTimeseriesFragments.length; n++) {
-        var freshTimeseriesFragment = freshTimeseriesFragments[n];
-        var oldTimeseriesFragment = this._timeseriesFragments.valueFor(freshTimeseriesFragment.fragmentGuid);
-        if (webglext2.hasval(oldTimeseriesFragment)) {
-          oldTimeseriesFragment.setAttrs(freshTimeseriesFragment);
-        } else {
-          this._timeseriesFragments.add(new TimelineTimeseriesFragmentModel(freshTimeseriesFragment));
-        }
-      }
-      for (var n = 0; n < freshTimeseriesSet.length; n++) {
-        var freshTimeseries = freshTimeseriesSet[n];
-        var oldTimeseries = this._timeseries.valueFor(freshTimeseries.timeseriesGuid);
-        if (webglext2.hasval(oldTimeseries)) {
-          oldTimeseries.setAttrs(freshTimeseries);
-        } else {
-          this._timeseries.add(new TimelineTimeseriesModel(freshTimeseries));
-        }
-      }
       for (var n = 0; n < freshEvents.length; n++) {
         var freshEvent = freshEvents[n];
         var oldEvent = this._events.valueFor(freshEvent.eventGuid);
-        if (webglext2.hasval(oldEvent)) {
+        if (webglext2.isNotEmpty(oldEvent)) {
           oldEvent.setAttrs(freshEvent);
         } else {
-          this._events.add(new TimelineEventModel(freshEvent));
+          this._events.add(new TimelineTrackModel(freshEvent));
         }
       }
       for (var n = 0; n < freshRows.length; n++) {
         var freshRow = freshRows[n];
         var oldRow = this._rows.valueFor(freshRow.rowGuid);
-        if (webglext2.hasval(oldRow)) {
+        if (webglext2.isNotEmpty(oldRow)) {
           oldRow.setAttrs(freshRow);
           oldRow.eventGuids.addAll(freshRow.eventGuids || [], 0, true);
         } else {
@@ -7915,7 +7225,7 @@ var webglext;
       for (var n = 0; n < freshGroups.length; n++) {
         var freshGroup = freshGroups[n];
         var oldGroup = this._groups.valueFor(freshGroup.groupGuid);
-        if (webglext2.hasval(oldGroup)) {
+        if (webglext2.isNotEmpty(oldGroup)) {
           oldGroup.setAttrs(freshGroup);
           oldGroup.rowGuids.addAll(freshGroup.rowGuids, 0, true);
         } else {
@@ -7928,71 +7238,31 @@ var webglext;
       this._root.maximizedRowGuids.addAll(freshRoot.maximizedRowGuids, 0, true);
     };
     TimelineModel2.prototype.merge = function(newData, strategy) {
-      var newCursors = webglext2.hasval(newData.cursors) ? newData.cursors : [];
-      for (var n = 0; n < newCursors.length; n++) {
-        var newCursor = newCursors[n];
-        var cursorModel = this._cursors.valueFor(newCursor.cursorGuid);
-        if (webglext2.hasval(cursorModel)) {
-          strategy.updateCursorModel(cursorModel, newCursor);
-        } else {
-          this._cursors.add(new TimelineCursorModel(newCursor));
-        }
-      }
-      var newAnnotations = webglext2.hasval(newData.annotations) ? newData.annotations : [];
-      for (var n = 0; n < newAnnotations.length; n++) {
-        var newAnnotation = newAnnotations[n];
-        var annotationModel = this._annotations.valueFor(newAnnotation.annotationGuid);
-        if (webglext2.hasval(annotationModel)) {
-          strategy.updateAnnotationModel(annotationModel, newAnnotation);
-        } else {
-          this._annotations.add(new TimelineAnnotationModel(newAnnotation));
-        }
-      }
-      var newTimeseriesFragments = webglext2.hasval(newData.timeseriesFragments) ? newData.timeseriesFragments : [];
-      for (var n = 0; n < newTimeseriesFragments.length; n++) {
-        var newTimeseriesFragment = newTimeseriesFragments[n];
-        var timeseriesFragmentModel = this._timeseriesFragments.valueFor(newTimeseriesFragment.fragmentGuid);
-        if (webglext2.hasval(timeseriesFragmentModel)) {
-          strategy.updateTimeseriesFragmentModel(timeseriesFragmentModel, newTimeseriesFragment);
-        } else {
-          this._timeseriesFragments.add(new TimelineTimeseriesFragmentModel(newTimeseriesFragment));
-        }
-      }
-      var newTimeseriesSet = webglext2.hasval(newData.timeseries) ? newData.timeseries : [];
-      for (var n = 0; n < newTimeseriesSet.length; n++) {
-        var newTimeseries = newTimeseriesSet[n];
-        var timeseriesModel = this._timeseries.valueFor(newTimeseries.timeseriesGuid);
-        if (webglext2.hasval(timeseriesModel)) {
-          strategy.updateTimeseriesModel(timeseriesModel, newTimeseries);
-        } else {
-          this._timeseries.add(new TimelineTimeseriesModel(newTimeseries));
-        }
-      }
-      var newEvents = webglext2.hasval(newData.events) ? newData.events : [];
+      var newEvents = webglext2.isNotEmpty(newData.events) ? newData.events : [];
       for (var n = 0; n < newEvents.length; n++) {
         var newEvent = newEvents[n];
         var eventModel = this._events.valueFor(newEvent.eventGuid);
-        if (webglext2.hasval(eventModel)) {
+        if (webglext2.isNotEmpty(eventModel)) {
           strategy.updateEventModel(eventModel, newEvent);
         } else {
-          this._events.add(new TimelineEventModel(newEvent));
+          this._events.add(new TimelineTrackModel(newEvent));
         }
       }
-      var newRows = webglext2.hasval(newData.rows) ? newData.rows : [];
+      var newRows = webglext2.isNotEmpty(newData.rows) ? newData.rows : [];
       for (var n = 0; n < newRows.length; n++) {
         var newRow = newRows[n];
         var rowModel = this._rows.valueFor(newRow.rowGuid);
-        if (webglext2.hasval(rowModel)) {
+        if (webglext2.isNotEmpty(rowModel)) {
           strategy.updateRowModel(rowModel, newRow);
         } else {
           this._rows.add(new TimelineRowModel(newRow));
         }
       }
-      var newGroups = webglext2.hasval(newData.groups) ? newData.groups : [];
+      var newGroups = webglext2.isNotEmpty(newData.groups) ? newData.groups : [];
       for (var n = 0; n < newGroups.length; n++) {
         var newGroup = newGroups[n];
         var groupModel = this._groups.valueFor(newGroup.groupGuid);
-        if (webglext2.hasval(groupModel)) {
+        if (webglext2.isNotEmpty(groupModel)) {
           strategy.updateGroupModel(groupModel, newGroup);
         } else {
           this._groups.add(new TimelineGroupModel(newGroup));
@@ -8007,12 +7277,6 @@ var webglext;
           return e.snapshot();
         }),
         annotations: this._annotations.map(function(e) {
-          return e.snapshot();
-        }),
-        timeseriesFragments: this._timeseriesFragments.map(function(e) {
-          return e.snapshot();
-        }),
-        timeseries: this._timeseries.map(function(e) {
           return e.snapshot();
         }),
         events: this._events.map(function(e) {
@@ -8033,6 +7297,7 @@ var webglext;
   function newEmptyTimelineRoot() {
     return {
       groupGuids: [],
+      rowGuids: [],
       bottomPinnedRowGuids: [],
       topPinnedRowGuids: [],
       maximizedRowGuids: []
@@ -8045,13 +7310,6 @@ var webglext;
     },
     updateAnnotationModel: function(annotationModel, newAnnotation) {
       annotationModel.setAttrs(newAnnotation);
-    },
-    updateTimeseriesFragmentModel: function(timeseriesFragmentModel, newTimeseriesFragment) {
-      timeseriesFragmentModel.setAttrs(newTimeseriesFragment);
-    },
-    updateTimeseriesModel: function(timeseriesModel, newTimeseries) {
-      timeseriesModel.setAttrs(newTimeseries);
-      timeseriesModel.fragmentGuids.addAll(newTimeseries.fragmentGuids || [], 0, true);
     },
     updateEventModel: function(eventModel, newEvent) {
       eventModel.setAttrs(newEvent);
@@ -8078,13 +7336,6 @@ var webglext;
     },
     updateAnnotationModel: function(annotationModel, newAnnotation) {
       annotationModel.setAttrs(newAnnotation);
-    },
-    updateTimeseriesFragmentModel: function(timeseriesFragmentModel, newTimeseriesFragment) {
-      timeseriesFragmentModel.setAttrs(newTimeseriesFragment);
-    },
-    updateTimeseriesModel: function(timeseriesModel, newTimeseries) {
-      timeseriesModel.setAttrs(newTimeseries);
-      timeseriesModel.fragmentGuids.addAll(newTimeseries.fragmentGuids || []);
     },
     updateEventModel: function(eventModel, newEvent) {
       eventModel.setAttrs(newEvent);
@@ -8120,31 +7371,31 @@ var webglext;
           var child = children[c];
           switch (child.layoutArg) {
             case webglext2.Side.TOP:
-              if (webglext2.hasval(topAxis))
+              if (webglext2.isNotEmpty(topAxis))
                 throw new Error("Timeline-layout can have at most one top-axis pane");
               topAxis = child;
               break;
             case webglext2.Side.BOTTOM:
-              if (webglext2.hasval(bottomAxis))
+              if (webglext2.isNotEmpty(bottomAxis))
                 throw new Error("Timeline-layout can have at most one bottom-axis pane");
               bottomAxis = child;
               break;
             default:
-              if (webglext2.hasval(center))
+              if (webglext2.isNotEmpty(center))
                 throw new Error("Timeline-layout can have at most one center pane");
               center = child;
               break;
           }
         }
         var hSum = 0;
-        if (webglext2.hasval(topAxis)) {
+        if (webglext2.isNotEmpty(topAxis)) {
           hSum += axisHeight;
         }
-        if (webglext2.hasval(bottomAxis)) {
+        if (webglext2.isNotEmpty(bottomAxis)) {
           hSum += axisHeight;
         }
-        if (webglext2.hasval(center)) {
-          if (webglext2.hasval(center.prefSize.h)) {
+        if (webglext2.isNotEmpty(center)) {
+          if (webglext2.isNotEmpty(center.prefSize.h)) {
             hSum += center.prefSize.h;
           } else {
             hSum = null;
@@ -8161,244 +7412,38 @@ var webglext;
           var child = children[c];
           switch (child.layoutArg) {
             case webglext2.Side.TOP:
-              if (webglext2.hasval(topAxis))
+              if (webglext2.isNotEmpty(topAxis))
                 throw new Error("Timeline-layout can have at most one top-axis pane");
               topAxis = child;
               break;
             case webglext2.Side.BOTTOM:
-              if (webglext2.hasval(bottomAxis))
+              if (webglext2.isNotEmpty(bottomAxis))
                 throw new Error("Timeline-layout can have at most one bottom-axis pane");
               bottomAxis = child;
               break;
             default:
-              if (webglext2.hasval(center))
+              if (webglext2.isNotEmpty(center))
                 throw new Error("Timeline-layout can have at most one center pane");
               center = child;
               break;
           }
         }
-        if (webglext2.hasval(topAxis)) {
+        if (webglext2.isNotEmpty(topAxis)) {
           topAxis.viewport.setRect(parentViewport.i, parentViewport.jEnd - axisHeight, parentViewport.w, axisHeight);
         }
-        if (webglext2.hasval(bottomAxis)) {
-          var jBottomMax = (webglext2.hasval(topAxis) ? topAxis.viewport.j : parentViewport.jEnd) - axisHeight;
+        if (webglext2.isNotEmpty(bottomAxis)) {
+          var jBottomMax = (webglext2.isNotEmpty(topAxis) ? topAxis.viewport.j : parentViewport.jEnd) - axisHeight;
           bottomAxis.viewport.setRect(parentViewport.i, Math.min(jBottomMax, parentViewport.j), parentViewport.w, axisHeight);
         }
-        if (webglext2.hasval(center)) {
-          var jCenterEnd = webglext2.hasval(topAxis) ? topAxis.viewport.jStart : parentViewport.jEnd;
-          var jCenterStart = webglext2.hasval(bottomAxis) ? bottomAxis.viewport.jEnd : parentViewport.jStart;
+        if (webglext2.isNotEmpty(center)) {
+          var jCenterEnd = webglext2.isNotEmpty(topAxis) ? topAxis.viewport.jStart : parentViewport.jEnd;
+          var jCenterStart = webglext2.isNotEmpty(bottomAxis) ? bottomAxis.viewport.jEnd : parentViewport.jStart;
           center.viewport.setEdges(parentViewport.iStart, parentViewport.iEnd, jCenterStart, jCenterEnd);
         }
       }
     };
   }
   webglext2.newTimelineLayout = newTimelineLayout;
-})(webglext || (webglext = {}));
-var webglext;
-(function(webglext2) {
-  function newTimeseriesCursorPainterFactory(cursorOptions) {
-    return function(drawable, timeAxis, dataAxis, model, rowModel, ui, options) {
-      var textColor = webglext2.hasval(cursorOptions) && webglext2.hasval(cursorOptions.textColor) ? cursorOptions.textColor : webglext2.white;
-      var lineColor = webglext2.hasval(cursorOptions) && webglext2.hasval(cursorOptions.lineColor) ? cursorOptions.lineColor : webglext2.white;
-      var font = webglext2.hasval(cursorOptions) && webglext2.hasval(cursorOptions.font) ? cursorOptions.font : options.timelineFont;
-      var buffer_px = webglext2.hasval(cursorOptions) && webglext2.hasval(cursorOptions.buffer_px) ? cursorOptions.buffer_px : 4;
-      var textDecimals = webglext2.hasval(cursorOptions) && webglext2.hasval(cursorOptions.textDecimals) ? cursorOptions.textDecimals : 2;
-      var boxSize_px = webglext2.hasval(cursorOptions) && webglext2.hasval(cursorOptions.boxSize_px) ? cursorOptions.boxSize_px : 8;
-      var crosshairThickness_px = webglext2.hasval(cursorOptions) && webglext2.hasval(cursorOptions.crosshairThickness_px) ? cursorOptions.boxSize_px : 2;
-      var boxThickness_px = webglext2.hasval(cursorOptions) && webglext2.hasval(cursorOptions.boxThickness_px) ? cursorOptions.boxSize_px : 2;
-      var program = new webglext2.Program(webglext2.xyFrac_VERTSHADER, webglext2.solid_FRAGSHADER);
-      var u_Color = new webglext2.UniformColor(program, "u_Color");
-      var a_Position = new webglext2.Attribute(program, "a_XyFrac");
-      var xys = new Float32Array(0);
-      xys = webglext2.ensureCapacityFloat32(xys, 4);
-      var xysBuffer = webglext2.newDynamicBuffer();
-      var textTextures = webglext2.newTextTextureCache2(font);
-      var textureRenderer = new webglext2.TextureRenderer();
-      return function(gl, viewport) {
-        var hoveredRow = ui.selection.hoveredRow.value;
-        if (!webglext2.hasval(hoveredRow) || hoveredRow.rowGuid !== rowModel.rowGuid)
-          return;
-        gl.blendFuncSeparate(webglext2.GL.SRC_ALPHA, webglext2.GL.ONE_MINUS_SRC_ALPHA, webglext2.GL.ONE, webglext2.GL.ONE_MINUS_SRC_ALPHA);
-        gl.enable(webglext2.GL.BLEND);
-        var indexXys = 0;
-        textTextures.resetTouches();
-        var time = ui.selection.hoveredTime_PMILLIS.value;
-        var y = ui.selection.hoveredY.value;
-        if (!webglext2.hasval(time) || !webglext2.hasval(y))
-          return;
-        var wLine = crosshairThickness_px / viewport.w;
-        var hLine = crosshairThickness_px / viewport.h;
-        var wBoxLine = boxThickness_px / viewport.w;
-        var hBoxLine = boxThickness_px / viewport.h;
-        var wBox = boxSize_px / viewport.w;
-        var hBox = boxSize_px / viewport.h;
-        if (webglext2.hasval(time)) {
-          var cursorModel = model.cursor(rowModel.cursorGuid);
-          if (webglext2.hasval(cursorModel)) {
-            if (webglext2.hasval(cursorModel.lineColor)) {
-              lineColor = cursorModel.lineColor;
-            }
-            if (webglext2.hasval(cursorModel.textColor)) {
-              textColor = cursorModel.textColor;
-            }
-            textureRenderer.begin(gl, viewport);
-            var timeseriesCount = cursorModel.labeledTimeseriesGuids.length;
-            xys = webglext2.ensureCapacityFloat32(xys, 2 * (36 + timeseriesCount * 48));
-            for (var i = 0; i < cursorModel.labeledTimeseriesGuids.length; i++) {
-              var timeseriesGuid = cursorModel.labeledTimeseriesGuids.valueAt(i);
-              var timeseries = model.timeseries(timeseriesGuid);
-              if (!rowModel.timeseriesGuids.hasValue(timeseriesGuid))
-                continue;
-              for (var j = 0; j < timeseries.fragmentGuids.length; j++) {
-                var fragmentGuid = timeseries.fragmentGuids.valueAt(j);
-                var fragment = model.timeseriesFragment(fragmentGuid);
-                if (fragment.start_PMILLIS < time && fragment.end_PMILLIS > time) {
-                  var value;
-                  if (timeseries.uiHint == "bars") {
-                    var index = webglext2.indexAtOrBefore(fragment.times_PMILLIS, time);
-                    value = fragment.data[index];
-                  } else {
-                    var index0 = webglext2.indexAtOrBefore(fragment.times_PMILLIS, time);
-                    var index1 = webglext2.indexAtOrAfter(fragment.times_PMILLIS, time);
-                    var value0 = fragment.data[index0];
-                    var time0 = fragment.times_PMILLIS[index0];
-                    var value1 = fragment.data[index1];
-                    var time1 = fragment.times_PMILLIS[index1];
-                    var diff = time1 - time0;
-                    var diff0 = (time - time0) / diff;
-                    var diff1 = 1 - diff0;
-                    value = value0 * diff1 + value1 * diff0;
-                  }
-                  var textTexture = textTextures.value(textColor.rgbaString, value.toFixed(textDecimals));
-                  var valueFracY = dataAxis.vFrac(value);
-                  var valueFracX = timeAxis.tFrac(time);
-                  var boxLeft = valueFracX - wBox / 2;
-                  var boxRight = valueFracX + wBox / 2;
-                  var boxTop = valueFracY + hBox / 2;
-                  var boxBottom = valueFracY - hBox / 2;
-                  indexXys = webglext2.putQuadXys(xys, indexXys, boxLeft - wBoxLine / 2, boxLeft + wBoxLine / 2, boxTop + hBoxLine / 2, boxBottom - hBoxLine / 2);
-                  indexXys = webglext2.putQuadXys(xys, indexXys, boxRight - wBoxLine / 2, boxRight + wBoxLine / 2, boxTop + hBoxLine / 2, boxBottom - hBoxLine / 2);
-                  indexXys = webglext2.putQuadXys(xys, indexXys, boxLeft + wBoxLine / 2, boxRight - wBoxLine / 2, boxTop - hBoxLine / 2, boxTop + hBoxLine / 2);
-                  indexXys = webglext2.putQuadXys(xys, indexXys, boxLeft + wBoxLine / 2, boxRight - wBoxLine / 2, boxBottom - hBoxLine / 2, boxBottom + hBoxLine / 2);
-                  textureRenderer.draw(gl, textTexture, boxRight + wBoxLine / 2 + buffer_px / viewport.w, valueFracY, { xAnchor: 0, yAnchor: 0.6 });
-                }
-              }
-            }
-            if (webglext2.hasval(cursorModel.showCursorText) ? cursorModel.showCursorText : true) {
-              var textTexture = textTextures.value(textColor.rgbaString, y.toFixed(textDecimals));
-              textureRenderer.draw(gl, textTexture, 1, dataAxis.vFrac(y) + buffer_px / viewport.h, { xAnchor: 1, yAnchor: 0 });
-            }
-            textureRenderer.end(gl);
-            textTextures.retainTouched();
-            var xLeft = 0;
-            var xRight = 1;
-            var yMid = dataAxis.vFrac(y);
-            var xMid = timeAxis.tFrac(time);
-            if (webglext2.hasval(cursorModel.showHorizontalLine) ? cursorModel.showHorizontalLine : true) {
-              indexXys = webglext2.putQuadXys(xys, indexXys, xLeft, xRight, yMid - hLine / 2, yMid + hLine / 2);
-            }
-            if (webglext2.hasval(cursorModel.showVerticalLine) ? cursorModel.showVerticalLine : true) {
-              indexXys = webglext2.putQuadXys(xys, indexXys, xMid - wLine / 2, xMid + wLine / 2, 0, yMid - hLine / 2);
-              indexXys = webglext2.putQuadXys(xys, indexXys, xMid - wLine / 2, xMid + wLine / 2, yMid + hLine / 2, 1);
-            }
-            program.use(gl);
-            xysBuffer.setData(xys.subarray(0, indexXys));
-            a_Position.setDataAndEnable(gl, xysBuffer, 2, webglext2.GL.FLOAT);
-            u_Color.setData(gl, lineColor);
-            gl.drawArrays(webglext2.GL.TRIANGLES, 0, Math.floor(indexXys / 2));
-            a_Position.disable(gl);
-            program.endUse(gl);
-          }
-        }
-      };
-    };
-  }
-  webglext2.newTimeseriesCursorPainterFactory = newTimeseriesCursorPainterFactory;
-})(webglext || (webglext = {}));
-var webglext;
-(function(webglext2) {
-  function newTimeseriesAnnotationPainterFactory() {
-    return function(drawable, timeAxis, dataAxis, model, rowModel, ui) {
-      var textTextures = webglext2.newTextTextureCache3();
-      var textureRenderer = new webglext2.TextureRenderer();
-      var program = new webglext2.Program(webglext2.xyFrac_VERTSHADER, webglext2.solid_FRAGSHADER);
-      var u_Color = new webglext2.UniformColor(program, "u_Color");
-      var a_Position = new webglext2.Attribute(program, "a_XyFrac");
-      var xys = new Float32Array(0);
-      xys = webglext2.ensureCapacityFloat32(xys, 4);
-      var xysBuffer = webglext2.newDynamicBuffer();
-      return function(gl, viewport) {
-        gl.blendFuncSeparate(webglext2.GL.SRC_ALPHA, webglext2.GL.ONE_MINUS_SRC_ALPHA, webglext2.GL.ONE, webglext2.GL.ONE_MINUS_SRC_ALPHA);
-        gl.enable(webglext2.GL.BLEND);
-        textTextures.resetTouches();
-        for (var i = 0; i < rowModel.annotationGuids.length; i++) {
-          var annotationGuid = rowModel.annotationGuids.valueAt(i);
-          var annotation = model.annotation(annotationGuid);
-          var annotationStyle = ui.annotationStyle(annotation.styleGuid);
-          var font = webglext2.hasval(annotationStyle.font) ? annotationStyle.font : "11px verdana,sans-serif";
-          var color = webglext2.hasval(annotationStyle.color) ? annotationStyle.color : webglext2.white;
-          var hTextOffset = webglext2.hasval(annotationStyle.hTextOffset) ? annotationStyle.hTextOffset : 0;
-          var vTextOffset = webglext2.hasval(annotationStyle.vTextOffset) ? annotationStyle.vTextOffset : 0;
-          if (annotationStyle.uiHint === "horizontal-line" || annotationStyle.uiHint === "vertical-line") {
-            if (annotationStyle.uiHint === "horizontal-line") {
-              var xFrac = webglext2.hasval(annotationStyle.align) ? annotationStyle.align : 1;
-              var yFrac = dataAxis.vFrac(annotation.y);
-              xys[0] = 0;
-              xys[1] = yFrac;
-              xys[2] = 1;
-              xys[3] = yFrac;
-            } else if (annotationStyle.uiHint === "vertical-line") {
-              var xFrac = timeAxis.tFrac(annotation.time_PMILLIS);
-              var yFrac = webglext2.hasval(annotationStyle.align) ? annotationStyle.align : 1;
-              xys[0] = xFrac;
-              xys[1] = 0;
-              xys[2] = xFrac;
-              xys[3] = 1;
-            }
-            program.use(gl);
-            u_Color.setData(gl, color);
-            xysBuffer.setData(xys.subarray(0, 4));
-            a_Position.setDataAndEnable(gl, xysBuffer, 2, webglext2.GL.FLOAT);
-            gl.drawArrays(webglext2.GL.LINES, 0, 2);
-            program.endUse(gl);
-          } else {
-            var xFrac = timeAxis.tFrac(annotation.time_PMILLIS);
-            var yFrac = dataAxis.vFrac(annotation.y);
-          }
-          textureRenderer.begin(gl, viewport);
-          for (var n = 0; n < annotationStyle.numIcons; n++) {
-            var icon = annotationStyle.icon(n);
-            var xFracOffset = xFrac + (webglext2.hasval(icon.hOffset) ? icon.hOffset : 0) / viewport.w;
-            var yFracOffset = yFrac + (webglext2.hasval(icon.vOffset) ? icon.vOffset : 0) / viewport.h;
-            var iconTexture = ui.loadImage(icon.url, function() {
-              drawable.redraw();
-            });
-            if (iconTexture) {
-              var options = {
-                xAnchor: webglext2.hasval(icon.hAlign) ? icon.hAlign : 0.5,
-                yAnchor: webglext2.hasval(icon.hAlign) ? icon.hAlign : 0.5,
-                width: icon.displayWidth,
-                height: icon.displayHeight,
-                rotation_CCWRAD: 0
-              };
-              textureRenderer.draw(gl, iconTexture, xFracOffset, yFracOffset, options);
-            }
-          }
-          if (webglext2.hasval(annotation.label)) {
-            var textTexture = textTextures.value(font, color.rgbaString, annotation.label);
-            var xFracOffset = xFrac + hTextOffset / viewport.w;
-            var yFracOffset = yFrac + vTextOffset / viewport.h;
-            var xAnchor = webglext2.hasval(annotationStyle.hTextAlign) ? annotationStyle.hTextAlign : 0;
-            var yAnchor = textTexture.yAnchor(webglext2.hasval(annotationStyle.vTextAlign) ? annotationStyle.vTextAlign : 0.5);
-            textureRenderer.draw(gl, textTexture, xFracOffset, yFracOffset, { xAnchor, yAnchor });
-          }
-          textureRenderer.end(gl);
-        }
-        textTextures.retainTouched();
-      };
-    };
-  }
-  webglext2.newTimeseriesAnnotationPainterFactory = newTimeseriesAnnotationPainterFactory;
 })(webglext || (webglext = {}));
 var webglext;
 (function(webglext2) {
@@ -8491,7 +7536,7 @@ var webglext;
       configurable: true
     });
     TimelineAnnotationStyleUi2.prototype._setAttrs = function(style) {
-      this._color = webglext2.hasval(style.color) ? webglext2.parseCssColor(style.color) : void 0;
+      this._color = webglext2.isNotEmpty(style.color) ? webglext2.parseCssColor(style.color) : void 0;
       this._font = style.font;
       this._hTextOffset = style.hTextOffset;
       this._vTextOffset = style.vTextOffset;
@@ -8499,7 +7544,7 @@ var webglext;
       this._vTextAlign = style.vTextAlign;
       this._align = style.align;
       this._uiHint = style.uiHint;
-      this._icons = webglext2.hasval(style.color) ? style.icons.map(function(icon) {
+      this._icons = webglext2.isNotEmpty(style.color) ? style.icons.map(function(icon) {
         return new TimelineAnnotationIconUi(icon);
       }) : [];
     };
@@ -8699,7 +7744,7 @@ var webglext;
       this._input = new TimelineInput();
       var getPaneId = function(pane) {
         var paneId = pane["webglext_PaneId"];
-        return webglext2.hasval(paneId) ? paneId : webglext2.getObjectId(pane);
+        return webglext2.isNotEmpty(paneId) ? paneId : webglext2.getObjectId(pane);
       };
       this._panes = new webglext2.OrderedSet([], getPaneId);
       this._selection = new TimelineSelectionModel();
@@ -8788,7 +7833,7 @@ var webglext;
       configurable: true
     });
     TimelineUi2.prototype.eventStyle = function(styleGuid) {
-      return webglext2.hasval(styleGuid) && this._eventStyles.valueFor(styleGuid) || timelineEventStyle_DEFAULT;
+      return webglext2.isNotEmpty(styleGuid) && this._eventStyles.valueFor(styleGuid) || timelineEventStyle_DEFAULT;
     };
     Object.defineProperty(TimelineUi2.prototype, "annotationStyles", {
       get: function() {
@@ -8798,7 +7843,7 @@ var webglext;
       configurable: true
     });
     TimelineUi2.prototype.annotationStyle = function(styleGuid) {
-      return webglext2.hasval(styleGuid) && this._annotationStyles.valueFor(styleGuid) || timelineAnnotationStyle_DEFAULT;
+      return webglext2.isNotEmpty(styleGuid) && this._annotationStyles.valueFor(styleGuid) || timelineAnnotationStyle_DEFAULT;
     };
     Object.defineProperty(TimelineUi2.prototype, "millisPerPx", {
       get: function() {
@@ -8808,7 +7853,7 @@ var webglext;
       configurable: true
     });
     TimelineUi2.prototype.loadImage = function(url, onLoaded) {
-      if (!webglext2.hasval(this._imageStatus[url])) {
+      if (!webglext2.isNotEmpty(this._imageStatus[url])) {
         this._imageStatus[url] = true;
         var imageCache = this._imageCache;
         var image = new Image();
@@ -8874,7 +7919,7 @@ var webglext;
       this._paneFactory = null;
       var getPaneId = function(pane) {
         var paneId = pane["webglext_PaneId"];
-        return webglext2.hasval(paneId) ? paneId : webglext2.getObjectId(pane);
+        return webglext2.isNotEmpty(paneId) ? paneId : webglext2.getObjectId(pane);
       };
       this._panes = new webglext2.OrderedSet([], getPaneId);
     }
@@ -9016,7 +8061,6 @@ var webglext;
       this._selectedEvents = new webglext2.OrderedSet([], function(e) {
         return e.eventGuid;
       });
-      this._hoveredTimeseries = new TimelineTimeseriesFragmentSelectionModel();
       this._hoveredAnnotation = new webglext2.SimpleModel();
     }
     Object.defineProperty(TimelineSelectionModel2.prototype, "mousePos", {
@@ -9068,13 +8112,6 @@ var webglext;
       enumerable: false,
       configurable: true
     });
-    Object.defineProperty(TimelineSelectionModel2.prototype, "hoveredTimeseries", {
-      get: function() {
-        return this._hoveredTimeseries;
-      },
-      enumerable: false,
-      configurable: true
-    });
     Object.defineProperty(TimelineSelectionModel2.prototype, "hoveredAnnotation", {
       get: function() {
         return this._hoveredAnnotation;
@@ -9085,74 +8122,6 @@ var webglext;
     return TimelineSelectionModel2;
   }();
   webglext2.TimelineSelectionModel = TimelineSelectionModel;
-  var TimelineTimeseriesFragmentSelectionModel = function() {
-    function TimelineTimeseriesFragmentSelectionModel2(fragment, index) {
-      if (fragment === void 0) {
-        fragment = null;
-      }
-      if (index === void 0) {
-        index = -1;
-      }
-      this._fragment = fragment;
-      this._index = index;
-      this._changed = new webglext2.Notification();
-    }
-    TimelineTimeseriesFragmentSelectionModel2.prototype.setValue = function(fragment, index) {
-      if (fragment !== this._fragment || index !== this._index) {
-        this._fragment = fragment;
-        this._index = index;
-        this._changed.fire();
-      }
-    };
-    TimelineTimeseriesFragmentSelectionModel2.prototype.clearValue = function() {
-      this.setValue(null, -1);
-    };
-    Object.defineProperty(TimelineTimeseriesFragmentSelectionModel2.prototype, "fragment", {
-      get: function() {
-        return this._fragment;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesFragmentSelectionModel2.prototype, "index", {
-      get: function() {
-        return this._index;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesFragmentSelectionModel2.prototype, "changed", {
-      get: function() {
-        return this._changed;
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesFragmentSelectionModel2.prototype, "times_PMILLIS", {
-      get: function() {
-        if (this._fragment) {
-          return this._fragment.times_PMILLIS[this._index];
-        } else {
-          return void 0;
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    Object.defineProperty(TimelineTimeseriesFragmentSelectionModel2.prototype, "data", {
-      get: function() {
-        if (this._fragment) {
-          return this._fragment.data[this._index];
-        } else {
-          return void 0;
-        }
-      },
-      enumerable: false,
-      configurable: true
-    });
-    return TimelineTimeseriesFragmentSelectionModel2;
-  }();
-  webglext2.TimelineTimeseriesFragmentSelectionModel = TimelineTimeseriesFragmentSelectionModel;
   var TimeIntervalModel = function() {
     function TimeIntervalModel2(start_PMILLIS, end_PMILLIS, cursor_PMILLIS) {
       this._start_PMILLIS = start_PMILLIS;
@@ -9247,7 +8216,7 @@ var webglext;
   }();
   webglext2.TimeIntervalModel = TimeIntervalModel;
   function attachTimelineInputToSelection(input, selection, options) {
-    var allowEventMultiSelection = webglext2.hasval(options) && webglext2.hasval(options.allowEventMultiSelection) ? options.allowEventMultiSelection : true;
+    var allowEventMultiSelection = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.allowEventMultiSelection) ? options.allowEventMultiSelection : true;
     input.mouseMove.on(function(ev) {
       selection.mousePos.setXy(ev.i, ev.j);
     });
@@ -9267,7 +8236,7 @@ var webglext;
       input.mouseDown.on(function(ev) {
         if (webglext2.isLeftMouseDown(ev.mouseEvent)) {
           var event = selection.hoveredEvent.value;
-          if (webglext2.hasval(event)) {
+          if (webglext2.isNotEmpty(event)) {
             var multiSelectMode = ev.mouseEvent && (ev.mouseEvent.ctrlKey || ev.mouseEvent.shiftKey);
             var unselectedEventClicked = !selection.selectedEvents.hasValue(event);
             if (multiSelectMode) {
@@ -9288,7 +8257,7 @@ var webglext;
       input.mouseDown.on(function(ev) {
         if (webglext2.isLeftMouseDown(ev.mouseEvent)) {
           var event = selection.hoveredEvent.value;
-          if (webglext2.hasval(event)) {
+          if (webglext2.isNotEmpty(event)) {
             selection.selectedEvents.retainValues([event]);
             selection.selectedEvents.add(event);
           }
@@ -9318,7 +8287,7 @@ var webglext;
       }
       function firstAvailableLaneNum(event) {
         var laneNum = findAvailableLaneNum(event, 0, self._lanes.length);
-        return webglext2.hasval(laneNum) ? laneNum : self._lanes.length;
+        return webglext2.isNotEmpty(laneNum) ? laneNum : self._lanes.length;
       }
       function addEventToLane(event, laneNum) {
         if (!self._lanes[laneNum]) {
@@ -9352,7 +8321,7 @@ var webglext;
         }
       }
       this._addEvent = function(eventGuid) {
-        if (webglext2.hasval(self._laneNums[eventGuid])) {
+        if (webglext2.isNotEmpty(self._laneNums[eventGuid])) {
           throw new Error("Lanes-array already contains this event: row-guid = " + row.rowGuid + ", lane = " + self._laneNums[eventGuid] + ", event-guid = " + eventGuid);
         }
         var event = model.event(eventGuid);
@@ -9370,14 +8339,14 @@ var webglext;
             var oldLaneNum = self._laneNums[event.eventGuid];
             var oldLane = self._lanes[oldLaneNum];
             var betterLaneNum = findAvailableLaneNum(event, 0, oldLaneNum);
-            if (webglext2.hasval(betterLaneNum)) {
+            if (webglext2.isNotEmpty(betterLaneNum)) {
               oldLane.remove(event);
               addEventToLane(event, betterLaneNum);
             } else if (oldLane.eventStillFits(event)) {
               oldLane.update(event);
             } else {
               var newLaneNum = findAvailableLaneNum(event, oldLaneNum + 1, self._lanes.length);
-              if (!webglext2.hasval(newLaneNum))
+              if (!webglext2.isNotEmpty(newLaneNum))
                 newLaneNum = self._lanes.length;
               oldLane.remove(event);
               addEventToLane(event, newLaneNum);
@@ -9515,7 +8484,7 @@ var webglext;
       return this._events.length === 0;
     };
     TimelineLaneStack2.prototype.eventAtTime = function(time_PMILLIS) {
-      if (webglext2.hasval(time_PMILLIS)) {
+      if (webglext2.isNotEmpty(time_PMILLIS)) {
         var iFirst = webglext2.indexAfter(this._ends_PMILLIS, time_PMILLIS);
         if (iFirst < this._events.length) {
           var eventFirst = this._events[iFirst];
@@ -9537,7 +8506,7 @@ var webglext;
     };
     TimelineLaneStack2.prototype.add = function(event) {
       var eventGuid = event.eventGuid;
-      if (webglext2.hasval(this._indices[eventGuid]))
+      if (webglext2.isNotEmpty(this._indices[eventGuid]))
         throw new Error("Lane already contains this event: event = " + formatEvent(event));
       var i = webglext2.indexAfter(this._starts_PMILLIS, event.start_PMILLIS);
       if (!this._eventFitsBetween(event, i - 1, i))
@@ -9553,7 +8522,7 @@ var webglext;
     TimelineLaneStack2.prototype.remove = function(event) {
       var eventGuid = event.eventGuid;
       var i = this._indices[eventGuid];
-      if (!webglext2.hasval(i))
+      if (!webglext2.isNotEmpty(i))
         throw new Error("Event not found in this lane: event = " + formatEvent(event));
       this._events.splice(i, 1);
       this._starts_PMILLIS.splice(i, 1);
@@ -9565,13 +8534,13 @@ var webglext;
     };
     TimelineLaneStack2.prototype.eventStillFits = function(event) {
       var i = this._indices[event.eventGuid];
-      if (!webglext2.hasval(i))
+      if (!webglext2.isNotEmpty(i))
         throw new Error("Event not found in this lane: event = " + formatEvent(event));
       return this._eventFitsBetween(event, i - 1, i + 1);
     };
     TimelineLaneStack2.prototype.update = function(event) {
       var i = this._indices[event.eventGuid];
-      if (!webglext2.hasval(i))
+      if (!webglext2.isNotEmpty(i))
         throw new Error("Event not found in this lane: event = " + formatEvent(event));
       this._starts_PMILLIS[i] = event.start_PMILLIS;
       this._ends_PMILLIS[i] = event.end_PMILLIS;
@@ -9652,9 +8621,9 @@ var webglext;
     };
     TimelineLaneSimple2.prototype.add = function(event) {
       var eventGuid = event.eventGuid;
-      if (webglext2.hasval(this._ids[eventGuid]))
+      if (webglext2.isNotEmpty(this._ids[eventGuid]))
         throw new Error("Lane already contains this event: event = " + formatEvent(event));
-      var order = webglext2.hasval(event.order) ? event.order : Number.NEGATIVE_INFINITY;
+      var order = webglext2.isNotEmpty(event.order) ? event.order : Number.NEGATIVE_INFINITY;
       var i = webglext2.indexAtOrAfter(this._orders, order);
       this._ids[eventGuid] = eventGuid;
       this._orders.splice(i, 0, order);
@@ -9662,7 +8631,7 @@ var webglext;
     };
     TimelineLaneSimple2.prototype.remove = function(event) {
       var eventGuid = event.eventGuid;
-      if (!webglext2.hasval(this._ids[eventGuid]))
+      if (!webglext2.isNotEmpty(this._ids[eventGuid]))
         throw new Error("Event not found in this lane: event = " + formatEvent(event));
       delete this._ids[eventGuid];
       var i = this._getIndex(event);
@@ -9702,7 +8671,7 @@ var webglext;
   }();
   webglext2.TimelineLaneSimple = TimelineLaneSimple;
   function formatEvent(event) {
-    if (!webglext2.hasval(event)) {
+    if (!webglext2.isNotEmpty(event)) {
       return "" + event;
     } else {
       return event.label + " [ " + webglext2.formatTime_ISO8601(event.start_PMILLIS) + " ... " + webglext2.formatTime_ISO8601(event.end_PMILLIS) + " ]";
@@ -9713,11 +8682,11 @@ var webglext;
 (function(webglext2) {
   function newEventsRowPaneFactory(eventsRowOpts) {
     return function(drawable, timeAxis, dataAxis, model, row, ui, options) {
-      var rowTopPadding = webglext2.hasval(eventsRowOpts) && webglext2.hasval(eventsRowOpts.rowTopPadding) ? eventsRowOpts.rowTopPadding : 6;
-      var rowBottomPadding = webglext2.hasval(eventsRowOpts) && webglext2.hasval(eventsRowOpts.rowBottomPadding) ? eventsRowOpts.rowBottomPadding : 6;
-      var laneHeight = webglext2.hasval(eventsRowOpts) && webglext2.hasval(eventsRowOpts.laneHeight) ? eventsRowOpts.laneHeight : 33;
-      var painterFactories = webglext2.hasval(eventsRowOpts) && webglext2.hasval(eventsRowOpts.painterFactories) ? eventsRowOpts.painterFactories : [];
-      var allowMultipleLanes = webglext2.hasval(eventsRowOpts) && webglext2.hasval(eventsRowOpts.allowMultipleLanes) ? eventsRowOpts.allowMultipleLanes : true;
+      var rowTopPadding = webglext2.isNotEmpty(eventsRowOpts) && webglext2.isNotEmpty(eventsRowOpts.rowTopPadding) ? eventsRowOpts.rowTopPadding : 6;
+      var rowBottomPadding = webglext2.isNotEmpty(eventsRowOpts) && webglext2.isNotEmpty(eventsRowOpts.rowBottomPadding) ? eventsRowOpts.rowBottomPadding : 6;
+      var laneHeight = webglext2.isNotEmpty(eventsRowOpts) && webglext2.isNotEmpty(eventsRowOpts.laneHeight) ? eventsRowOpts.laneHeight : 33;
+      var painterFactories = webglext2.isNotEmpty(eventsRowOpts) && webglext2.isNotEmpty(eventsRowOpts.painterFactories) ? eventsRowOpts.painterFactories : [];
+      var allowMultipleLanes = webglext2.isNotEmpty(eventsRowOpts) && webglext2.isNotEmpty(eventsRowOpts.allowMultipleLanes) ? eventsRowOpts.allowMultipleLanes : true;
       var timelineFont = options.timelineFont;
       var timelineFgColor = options.timelineFgColor;
       var draggableEdgeWidth = options.draggableEdgeWidth;
@@ -9741,7 +8710,7 @@ var webglext;
         return eventAtCoords(ev.paneViewport, ev.i, ev.j);
       };
       var isInsideAnEvent = function(viewport, i, j) {
-        return webglext2.hasval(eventAtCoords(viewport, i, j));
+        return webglext2.isNotEmpty(eventAtCoords(viewport, i, j));
       };
       var layout = {
         updatePrefSize: function(parentPrefSize) {
@@ -9857,7 +8826,7 @@ var webglext;
             rowContentPane.mouseCursor = mouseCursors[chooseEventDragMode(ui, hoveredTime_PMILLIS, selection.selectedEvents.toArray())];
           } else {
             var hoveredEvent = selection.hoveredEvent.value;
-            var hoveredEvents = webglext2.hasval(hoveredEvent) ? [hoveredEvent] : [];
+            var hoveredEvents = webglext2.isNotEmpty(hoveredEvent) ? [hoveredEvent] : [];
             rowContentPane.mouseCursor = mouseCursors[chooseEventDragMode(ui, hoveredTime_PMILLIS, hoveredEvents)];
           }
         }
@@ -9931,19 +8900,19 @@ var webglext;
             var newStart_PMILLIS = eventDragPointer_PMILLIS - eventDragOffsets_MILLIS[event.eventGuid];
             var newEnd_PMILLIS = event.end_PMILLIS + (newStart_PMILLIS - event.start_PMILLIS);
             var eventStartSnapShift_MILLIS = findSnapShift_MILLIS(newStart_PMILLIS, maxSnapShift_MILLIS);
-            if (webglext2.hasval(eventStartSnapShift_MILLIS)) {
-              if (!webglext2.hasval(snapShift_MILLIS) || Math.abs(eventStartSnapShift_MILLIS) < Math.abs(snapShift_MILLIS)) {
+            if (webglext2.isNotEmpty(eventStartSnapShift_MILLIS)) {
+              if (!webglext2.isNotEmpty(snapShift_MILLIS) || Math.abs(eventStartSnapShift_MILLIS) < Math.abs(snapShift_MILLIS)) {
                 snapShift_MILLIS = eventStartSnapShift_MILLIS;
               }
             }
             var eventEndSnapShift_MILLIS = findSnapShift_MILLIS(newEnd_PMILLIS, maxSnapShift_MILLIS);
-            if (webglext2.hasval(eventEndSnapShift_MILLIS)) {
-              if (!webglext2.hasval(snapShift_MILLIS) || Math.abs(eventEndSnapShift_MILLIS) < Math.abs(snapShift_MILLIS)) {
+            if (webglext2.isNotEmpty(eventEndSnapShift_MILLIS)) {
+              if (!webglext2.isNotEmpty(snapShift_MILLIS) || Math.abs(eventEndSnapShift_MILLIS) < Math.abs(snapShift_MILLIS)) {
                 snapShift_MILLIS = eventEndSnapShift_MILLIS;
               }
             }
           }
-          if (!webglext2.hasval(snapShift_MILLIS)) {
+          if (!webglext2.isNotEmpty(snapShift_MILLIS)) {
             snapShift_MILLIS = 0;
           }
           for (var n2 = 0; n2 < eventDragEvents.length; n2++) {
@@ -9973,13 +8942,13 @@ var webglext;
             var event = eventDragEvents[n2];
             var newStart_PMILLIS = eventDragPointer_PMILLIS - eventDragOffsets_MILLIS[event.eventGuid];
             var eventSnapShift_MILLIS = findSnapShift_MILLIS(newStart_PMILLIS, maxSnapShift_MILLIS);
-            if (webglext2.hasval(eventSnapShift_MILLIS)) {
-              if (!webglext2.hasval(snapShift_MILLIS) || Math.abs(eventSnapShift_MILLIS) < Math.abs(snapShift_MILLIS)) {
+            if (webglext2.isNotEmpty(eventSnapShift_MILLIS)) {
+              if (!webglext2.isNotEmpty(snapShift_MILLIS) || Math.abs(eventSnapShift_MILLIS) < Math.abs(snapShift_MILLIS)) {
                 snapShift_MILLIS = eventSnapShift_MILLIS;
               }
             }
           }
-          if (!webglext2.hasval(snapShift_MILLIS)) {
+          if (!webglext2.isNotEmpty(snapShift_MILLIS)) {
             snapShift_MILLIS = 0;
           }
           for (var n2 = 0; n2 < eventDragEvents.length; n2++) {
@@ -10009,13 +8978,13 @@ var webglext;
             var event = eventDragEvents[n2];
             var newEnd_PMILLIS = eventDragPointer_PMILLIS - eventDragOffsets_MILLIS[event.eventGuid];
             var eventSnapShift_MILLIS = findSnapShift_MILLIS(newEnd_PMILLIS, maxSnapShift_MILLIS);
-            if (webglext2.hasval(eventSnapShift_MILLIS)) {
-              if (!webglext2.hasval(snapShift_MILLIS) || Math.abs(eventSnapShift_MILLIS) < Math.abs(snapShift_MILLIS)) {
+            if (webglext2.isNotEmpty(eventSnapShift_MILLIS)) {
+              if (!webglext2.isNotEmpty(snapShift_MILLIS) || Math.abs(eventSnapShift_MILLIS) < Math.abs(snapShift_MILLIS)) {
                 snapShift_MILLIS = eventSnapShift_MILLIS;
               }
             }
           }
-          if (!webglext2.hasval(snapShift_MILLIS)) {
+          if (!webglext2.isNotEmpty(snapShift_MILLIS)) {
             snapShift_MILLIS = 0;
           }
           for (var n2 = 0; n2 < eventDragEvents.length; n2++) {
@@ -10059,8 +9028,8 @@ var webglext;
     var rowTopPadding = options.rowTopPadding;
     var rowBottomPadding = options.rowBottomPadding;
     var laneHeight = options.laneHeight;
-    var lineColor = webglext2.hasval(limitsOpts) && webglext2.hasval(limitsOpts.lineColor) ? limitsOpts.lineColor : new webglext2.Color(1, 0, 0, 1);
-    var lineThickness = webglext2.hasval(limitsOpts) && webglext2.hasval(limitsOpts.lineThickness) ? limitsOpts.lineThickness : 2.5;
+    var lineColor = webglext2.isNotEmpty(limitsOpts) && webglext2.isNotEmpty(limitsOpts.lineColor) ? limitsOpts.lineColor : new webglext2.Color(1, 0, 0, 1);
+    var lineThickness = webglext2.isNotEmpty(limitsOpts) && webglext2.isNotEmpty(limitsOpts.lineThickness) ? limitsOpts.lineThickness : 2.5;
     var xyFrac_vColor_VERTSHADER = webglext2.concatLines("                                                                ", "  attribute vec2 a_XyFrac;                                      ", "  attribute vec4 a_Color;                                       ", "                                                                ", "  varying vec4 v_Color;                                         ", "                                                                ", "  void main( ) {                                                ", "      gl_Position = vec4( ( -1.0 + 2.0*a_XyFrac ), 0.0, 1.0 );  ", "      v_Color = a_Color;                                        ", "  }                                                             ", "                                                                ");
     var program = new webglext2.Program(xyFrac_vColor_VERTSHADER, webglext2.varyingColor_FRAGSHADER);
     var a_XyFrac = new webglext2.Attribute(program, "a_XyFrac");
@@ -10100,8 +9069,8 @@ var webglext;
         var jBottom = rowTopPadding + (laneIndex + 1) * laneHeight;
         var yBottom = (viewport.h - jBottom) / viewport.h;
         var yMid = (yTop + yBottom) / 2;
-        var xLeft = webglext2.hasval(event.startLimit_PMILLIS) ? timeAxis.tFrac(event.startLimit_PMILLIS) : 0;
-        var xRight = webglext2.hasval(event.endLimit_PMILLIS) ? timeAxis.tFrac(event.endLimit_PMILLIS) : 1;
+        var xLeft = webglext2.isNotEmpty(event.startLimit_PMILLIS) ? timeAxis.tFrac(event.startLimit_PMILLIS) : 0;
+        var xRight = webglext2.isNotEmpty(event.endLimit_PMILLIS) ? timeAxis.tFrac(event.endLimit_PMILLIS) : 1;
         indexXys = webglext2.putQuadXys(xys, indexXys, xLeft, xRight, yMid - hLine / 2, yMid + hLine / 2);
         indexXys = webglext2.putQuadXys(xys, indexXys, xLeft, xLeft - wLine, yTop, yBottom);
         indexXys = webglext2.putQuadXys(xys, indexXys, xRight, xRight + wLine, yTop, yBottom);
@@ -10122,7 +9091,7 @@ var webglext;
           var lane = lanes.lane(l);
           for (var e = 0; e < lane.length; e++) {
             var event = lane.event(e);
-            if (selectedEvents.hasId(event.eventGuid) && (webglext2.hasval(event.startLimit_PMILLIS) || webglext2.hasval(event.endLimit_PMILLIS))) {
+            if (selectedEvents.hasId(event.eventGuid) && (webglext2.isNotEmpty(event.startLimit_PMILLIS) || webglext2.isNotEmpty(event.endLimit_PMILLIS))) {
               var indexes = helper.fillEvent(l, e, indexXys, indexRgbas, viewport);
               indexXys = indexes.indexXys;
               indexRgbas = indexes.indexRgbas;
@@ -10149,17 +9118,17 @@ var webglext;
     var rowTopPadding = options.rowTopPadding;
     var rowBottomPadding = options.rowBottomPadding;
     var laneHeight = options.laneHeight;
-    var topMargin = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.topMargin) ? barOpts.topMargin : 1.2;
-    var bottomMargin = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.bottomMargin) ? barOpts.bottomMargin : 1.2;
-    var borderThickness = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.borderThickness) ? barOpts.borderThickness : 2;
-    var cornerType = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.cornerType) ? barOpts.cornerType : JointType.BEVEL;
-    var defaultColor = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.defaultColor) ? barOpts.defaultColor : options.timelineFgColor.withAlphaTimes(0.4);
+    var topMargin = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.topMargin) ? barOpts.topMargin : 1.2;
+    var bottomMargin = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.bottomMargin) ? barOpts.bottomMargin : 1.2;
+    var borderThickness = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.borderThickness) ? barOpts.borderThickness : 2;
+    var cornerType = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.cornerType) ? barOpts.cornerType : JointType.BEVEL;
+    var defaultColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.defaultColor) ? barOpts.defaultColor : options.timelineFgColor.withAlphaTimes(0.4);
     var defaultColorSecondary = new webglext2.Color(1, 1, 1, 1);
-    var minimumVisibleWidth = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.minimumVisibleWidth) ? barOpts.minimumVisibleWidth : 0;
-    var stripeWidth = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.stripeWidth) ? barOpts.stripeWidth : 5;
-    var stripeSecondaryWidth = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.stripeSecondaryWidth) ? barOpts.stripeSecondaryWidth : 5;
-    var stripeSlant = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.stripeSlant) ? barOpts.stripeSlant : 1;
-    var featherWidth = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.featherWidth) ? barOpts.featherWidth : 2;
+    var minimumVisibleWidth = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.minimumVisibleWidth) ? barOpts.minimumVisibleWidth : 0;
+    var stripeWidth = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.stripeWidth) ? barOpts.stripeWidth : 5;
+    var stripeSecondaryWidth = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.stripeSecondaryWidth) ? barOpts.stripeSecondaryWidth : 5;
+    var stripeSlant = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.stripeSlant) ? barOpts.stripeSlant : 1;
+    var featherWidth = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.featherWidth) ? barOpts.featherWidth : 2;
     var selection = ui.selection;
     var xyFrac_vColor_VERTSHADER = webglext2.concatLines("                                                                ", "  attribute vec2 a_XyFrac;                                      ", "  attribute vec4 a_Color;                                       ", "  attribute vec4 a_ColorSecondary;                              ", "  attribute vec2 a_relativeXy;                                  ", "  attribute float a_fillPattern;                                ", "                                                                ", "  varying vec4 v_Color;                                         ", "  varying vec4 v_ColorSecondary;                                ", "  varying vec2 v_relativeXy;                                    ", "  varying float v_fillPattern;                                  ", "                                                                ", "  void main( ) {                                                ", "      gl_Position = vec4( ( -1.0 + 2.0*a_XyFrac ), 0.0, 1.0 );  ", "      v_Color = a_Color;                                        ", "      v_ColorSecondary = a_ColorSecondary;                      ", "      v_relativeXy = a_relativeXy;                              ", "      v_fillPattern = a_fillPattern;                            ", "  }                                                             ", "                                                                ");
     var fillPattern_FRAGSHADER = webglext2.concatLines(" #define PI 3.1415926535897932384626433832795                                                  ", "                                                                                               ", " precision lowp float;                                                                         ", " // the width in pixels of the first color stripe                                              ", " uniform float u_stripeWidth;                                                                  ", " // the width in pixels of the second color stripe                                             ", " uniform float u_stripeSecondaryWidth;                                                         ", " // the slant of the stipes: 0 = horizontal, 1 = 45 degrees                                    ", " uniform float u_slant;                                                                        ", " // width in pixels of the antialiasing of the slant                                           ", " uniform float u_featherWidth;                                                                 ", "                                                                                               ", " varying vec4 v_Color;                                                                         ", " varying vec4 v_ColorSecondary;                                                                ", " varying vec2 v_relativeXy;                                                                    ", " varying float v_fillPattern;                                                                  ", "                                                                                               ", " void pattern_stripe( ) {                                                                      ", "     float stripeWidthTotal = u_stripeWidth + u_stripeSecondaryWidth;                          ", "                                                                                               ", "     // calculate the value indicating where we are in the stripe pattern                      ", "     float stripeCoord = mod( v_relativeXy.x + u_slant * v_relativeXy.y , stripeWidthTotal );  ", "                                                                                               ", "     // we are in the feather region beween the two stripes                                    ", "     if ( stripeCoord < u_featherWidth ) {                                                     ", "         float diff = stripeCoord / u_featherWidth;                                            ", "         gl_FragColor = vec4 ( v_Color.xyz * diff + (1.0-diff) * v_ColorSecondary.xyz, 1.0 );  ", "     }                                                                                         ", "     // we are in the color 1 stripe                                                           ", "     else if ( stripeCoord < u_stripeWidth ) {                                                 ", "         gl_FragColor = v_Color;                                                               ", "     }                                                                                         ", "     // we are the feather region between the two stripes                                      ", "     else if ( stripeCoord  < u_stripeWidth + u_featherWidth ) {                               ", "         float diff = ( stripeCoord - u_stripeWidth ) / u_featherWidth;                        ", "         gl_FragColor = vec4 ( v_Color.xyz * (1.0-diff) + diff * v_ColorSecondary.xyz, 1.0 );  ", "     }                                                                                         ", "     // we are in the color 2 stripe                                                           ", "     else {                                                                                    ", "         gl_FragColor = v_ColorSecondary;                                                      ", "     }                                                                                         ", " }                                                                                             ", "                                                                                               ", " void pattern_gradient( ) {                                                                    ", "     float stripeWidthTotal = u_stripeWidth + u_stripeSecondaryWidth;                          ", "                                                                                               ", "     // calculate the value indicating where we are in the stripe pattern                      ", "     float stripeCoord = mod( v_relativeXy.x + u_slant * v_relativeXy.y , stripeWidthTotal );  ", "                                                                                               ", "     float weightedCoord;                                                                      ", "     if ( stripeCoord < u_stripeWidth ) {                                                      ", "         float slope =  PI / u_stripeWidth;                                                    ", "         weightedCoord = slope * stripeCoord;                                                  ", "     }                                                                                         ", "     else {                                                                                    ", "         float slope = PI / u_stripeSecondaryWidth;                                            ", "         weightedCoord = PI + slope * ( stripeCoord - u_stripeWidth );                         ", "     }                                                                                         ", "                                                                                               ", "     // sin wave domain: [0, stripeWidthTotal ] range: [0, 1]                                  ", "     float frac = sin( weightedCoord ) * 2.0 - 1.0;                                            ", "                                                                                               ", "     // mix primary and secondary colors based on gradient fraction                            ", "     gl_FragColor = mix( v_Color, v_ColorSecondary, frac );                                    ", " }                                                                                             ", "                                                                                               ", " void pattern_solid( ) {                                                                       ", "     gl_FragColor = v_Color;                                                                   ", " }                                                                                             ", "                                                                                               ", " void main( ) {                                                                                ", "     if ( v_fillPattern == 1.0 ) {                                                             ", "         pattern_stripe( );                                                                    ", "     }                                                                                         ", "     else if ( v_fillPattern == 2.0 ) {                                                        ", "         pattern_gradient( );                                                                  ", "     }                                                                                         ", "     else {                                                                                    ", "         pattern_solid( );                                                                     ", "     }                                                                                         ", " }                                                                                             ", "                                                                                               ", "                                                                                               ", "                                                                                               ");
@@ -10225,8 +9194,8 @@ var webglext;
         var event = lane.event(eventIndex);
         var wBorder = borderThickness / viewport.w;
         var hBorder = borderThickness / viewport.h;
-        var _topMargin = webglext2.hasval(event.topMargin) ? event.topMargin : topMargin;
-        var _bottomMargin = webglext2.hasval(event.bottomMargin) ? event.bottomMargin : bottomMargin;
+        var _topMargin = webglext2.isNotEmpty(event.topMargin) ? event.topMargin : topMargin;
+        var _bottomMargin = webglext2.isNotEmpty(event.bottomMargin) ? event.bottomMargin : bottomMargin;
         var jTop = rowTopPadding + laneIndex * laneHeight + _topMargin;
         var yTop = (viewport.h - jTop) / viewport.h;
         var jBottom = rowTopPadding + (laneIndex + 1) * laneHeight - _bottomMargin;
@@ -10263,15 +9232,15 @@ var webglext;
     var rowTopPadding = options.rowTopPadding;
     var rowBottomPadding = options.rowBottomPadding;
     var laneHeight = options.laneHeight;
-    var topMargin = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.topMargin) ? barOpts.topMargin : 1.2;
-    var bottomMargin = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.bottomMargin) ? barOpts.bottomMargin : 1.2;
-    var borderThickness = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.borderThickness) ? barOpts.borderThickness : 2;
-    var cornerType = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.cornerType) ? barOpts.cornerType : JointType.BEVEL;
-    var defaultColor = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.defaultColor) ? barOpts.defaultColor : options.timelineFgColor.withAlphaTimes(0.4);
-    var defaultBorderColor = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.defaultBorderColor) ? barOpts.defaultBorderColor : null;
-    var selectedBorderColor = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.selectedBorderColor) ? barOpts.selectedBorderColor : options.timelineFgColor;
-    var minimumVisibleWidth = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.minimumVisibleWidth) ? barOpts.minimumVisibleWidth : 0;
-    var dashLength = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.dashLength) ? barOpts.dashLength : 5;
+    var topMargin = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.topMargin) ? barOpts.topMargin : 1.2;
+    var bottomMargin = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.bottomMargin) ? barOpts.bottomMargin : 1.2;
+    var borderThickness = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.borderThickness) ? barOpts.borderThickness : 2;
+    var cornerType = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.cornerType) ? barOpts.cornerType : JointType.BEVEL;
+    var defaultColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.defaultColor) ? barOpts.defaultColor : options.timelineFgColor.withAlphaTimes(0.4);
+    var defaultBorderColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.defaultBorderColor) ? barOpts.defaultBorderColor : null;
+    var selectedBorderColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.selectedBorderColor) ? barOpts.selectedBorderColor : options.timelineFgColor;
+    var minimumVisibleWidth = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.minimumVisibleWidth) ? barOpts.minimumVisibleWidth : 0;
+    var dashLength = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.dashLength) ? barOpts.dashLength : 5;
     var defaultSecondaryColor = new webglext2.Color(0, 0, 0, 0);
     var selection = ui.selection;
     var dashedBorder_VERTSHADER = webglext2.concatLines("                                                                ", "  attribute vec2 a_XyFrac;                                      ", "  attribute vec4 a_Color;                                       ", "  attribute vec4 a_SecondaryColor;                              ", "  attribute float a_LengthSoFar;                                ", "                                                                ", "  varying vec4 v_Color;                                         ", "  varying vec4 v_SecondaryColor;                                ", "  varying float f_LengthSoFar;                                  ", "                                                                ", "  void main( ) {                                                ", "      gl_Position = vec4( ( -1.0 + 2.0*a_XyFrac ), 0.0, 1.0 );  ", "      v_Color = a_Color;                                        ", "      v_SecondaryColor = a_SecondaryColor;                      ", "      f_LengthSoFar = a_LengthSoFar;                            ", "  }                                                             ", "                                                                ");
@@ -10333,8 +9302,8 @@ var webglext;
         var event = lane.event(eventIndex);
         var wBorder = borderThickness / viewport.w;
         var hBorder = borderThickness / viewport.h;
-        var _topMargin = webglext2.hasval(event.topMargin) ? event.topMargin : topMargin;
-        var _bottomMargin = webglext2.hasval(event.bottomMargin) ? event.bottomMargin : bottomMargin;
+        var _topMargin = webglext2.isNotEmpty(event.topMargin) ? event.topMargin : topMargin;
+        var _bottomMargin = webglext2.isNotEmpty(event.bottomMargin) ? event.bottomMargin : bottomMargin;
         var jTop = rowTopPadding + laneIndex * laneHeight + _topMargin;
         var yTop = (viewport.h - jTop) / viewport.h;
         var jBottom = rowTopPadding + (laneIndex + 1) * laneHeight - _bottomMargin;
@@ -10490,9 +9459,9 @@ var webglext;
     var rowTopPadding = options.rowTopPadding;
     var rowBottomPadding = options.rowBottomPadding;
     var laneHeight = options.laneHeight;
-    var topMargin = webglext2.hasval(iconOpts) && webglext2.hasval(iconOpts.topMargin) ? iconOpts.topMargin : 1.2;
-    var bottomMargin = webglext2.hasval(iconOpts) && webglext2.hasval(iconOpts.bottomMargin) ? iconOpts.bottomMargin : 1.2;
-    var vAlign = webglext2.hasval(iconOpts) && webglext2.hasval(iconOpts.vAlign) ? iconOpts.vAlign : 0.5;
+    var topMargin = webglext2.isNotEmpty(iconOpts) && webglext2.isNotEmpty(iconOpts.topMargin) ? iconOpts.topMargin : 1.2;
+    var bottomMargin = webglext2.isNotEmpty(iconOpts) && webglext2.isNotEmpty(iconOpts.bottomMargin) ? iconOpts.bottomMargin : 1.2;
+    var vAlign = webglext2.isNotEmpty(iconOpts) && webglext2.isNotEmpty(iconOpts.vAlign) ? iconOpts.vAlign : 0.5;
     var textureRenderer = new webglext2.TextureRenderer();
     return {
       textureRenderer,
@@ -10541,7 +9510,7 @@ var webglext;
     var wText = 0;
     var textTexture;
     if (textEnabled && labelText) {
-      var textColor = webglext2.hasval(fgColor) ? fgColor : textDefaultColor;
+      var textColor = webglext2.isNotEmpty(fgColor) ? fgColor : textDefaultColor;
       textTexture = textTextures.value(textColor.rgbaString, labelText);
       wText = textTexture.w / viewport.w;
     }
@@ -10554,21 +9523,21 @@ var webglext;
     var rowTopPadding = options.rowTopPadding;
     var rowBottomPadding = options.rowBottomPadding;
     var laneHeight = options.laneHeight;
-    var topMargin = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.topMargin) ? labelOpts.topMargin : 1.2;
-    var bottomMargin = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.bottomMargin) ? labelOpts.bottomMargin : 1.2;
-    var leftMargin = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.leftMargin) ? labelOpts.leftMargin : 4;
-    var rightMargin = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.rightMargin) ? labelOpts.rightMargin : 4;
-    var vAlign = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.vAlign) ? labelOpts.vAlign : 0.5;
-    var spacing = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.spacing) ? labelOpts.spacing : 3;
-    var extendBeyondBar = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.extendBeyondBar) ? labelOpts.extendBeyondBar : false;
-    var textMode = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.textMode) ? labelOpts.textMode : "force";
-    var iconsEnabled = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.iconsEnabled) ? labelOpts.iconsEnabled : true;
-    var iconsForceWidth = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.iconsForceWidth) ? labelOpts.iconsForceWidth : "auto";
-    var iconsForceHeight = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.iconsForceHeight) ? labelOpts.iconsForceHeight : "auto";
-    var iconsSizeFactor = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.iconsSizeFactor) ? labelOpts.iconsSizeFactor : 1;
-    var textEnabled = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.textEnabled) ? labelOpts.textEnabled : true;
-    var textDefaultColor = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.textDefaultColor) ? labelOpts.textDefaultColor : options.timelineFgColor;
-    var textFont = webglext2.hasval(labelOpts) && webglext2.hasval(labelOpts.textFont) ? labelOpts.textFont : options.timelineFont;
+    var topMargin = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.topMargin) ? labelOpts.topMargin : 1.2;
+    var bottomMargin = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.bottomMargin) ? labelOpts.bottomMargin : 1.2;
+    var leftMargin = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.leftMargin) ? labelOpts.leftMargin : 4;
+    var rightMargin = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.rightMargin) ? labelOpts.rightMargin : 4;
+    var vAlign = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.vAlign) ? labelOpts.vAlign : 0.5;
+    var spacing = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.spacing) ? labelOpts.spacing : 3;
+    var extendBeyondBar = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.extendBeyondBar) ? labelOpts.extendBeyondBar : false;
+    var textMode = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.textMode) ? labelOpts.textMode : "force";
+    var iconsEnabled = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.iconsEnabled) ? labelOpts.iconsEnabled : true;
+    var iconsForceWidth = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.iconsForceWidth) ? labelOpts.iconsForceWidth : "auto";
+    var iconsForceHeight = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.iconsForceHeight) ? labelOpts.iconsForceHeight : "auto";
+    var iconsSizeFactor = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.iconsSizeFactor) ? labelOpts.iconsSizeFactor : 1;
+    var textEnabled = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.textEnabled) ? labelOpts.textEnabled : true;
+    var textDefaultColor = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.textDefaultColor) ? labelOpts.textDefaultColor : options.timelineFgColor;
+    var textFont = webglext2.isNotEmpty(labelOpts) && webglext2.isNotEmpty(labelOpts.textFont) ? labelOpts.textFont : options.timelineFont;
     var iconTextures = {};
     var textTextures = webglext2.newTextTextureCache2(textFont);
     var textureRenderer = new webglext2.TextureRenderer();
@@ -10578,12 +9547,12 @@ var webglext;
       paintEvent: function(laneIndex, eventIndex, gl, viewport) {
         var lane = lanes.lane(laneIndex);
         var event = lane.event(eventIndex);
-        var labelTopMargin = webglext2.hasval(event.labelTopMargin) ? event.labelTopMargin : topMargin;
-        var labelBottomMargin = webglext2.hasval(event.labelBottomMargin) ? event.labelBottomMargin : bottomMargin;
-        var labelVAlign = webglext2.hasval(event.labelVAlign) ? event.labelVAlign : vAlign;
-        var labelVPos = webglext2.hasval(event.labelVPos) ? event.labelVPos : labelVAlign;
-        var labelHAlign = webglext2.hasval(event.labelHAlign) ? event.labelHAlign : 0;
-        var labelHPos = webglext2.hasval(event.labelHPos) ? event.labelHPos : labelHAlign;
+        var labelTopMargin = webglext2.isNotEmpty(event.labelTopMargin) ? event.labelTopMargin : topMargin;
+        var labelBottomMargin = webglext2.isNotEmpty(event.labelBottomMargin) ? event.labelBottomMargin : bottomMargin;
+        var labelVAlign = webglext2.isNotEmpty(event.labelVAlign) ? event.labelVAlign : vAlign;
+        var labelVPos = webglext2.isNotEmpty(event.labelVPos) ? event.labelVPos : labelVAlign;
+        var labelHAlign = webglext2.isNotEmpty(event.labelHAlign) ? event.labelHAlign : 0;
+        var labelHPos = webglext2.isNotEmpty(event.labelHPos) ? event.labelHPos : labelHAlign;
         var jTop = rowTopPadding + laneIndex * laneHeight + labelTopMargin;
         var yFrac = (viewport.h - jTop - (1 - labelVAlign) * (laneHeight - labelTopMargin - labelBottomMargin)) / viewport.h;
         var xLeftMin = 2 / viewport.w;
@@ -10626,11 +9595,11 @@ var webglext;
           var iconTexture;
           if (iconsEnabled && event.labelIcon) {
             iconTexture = iconTextures[event.labelIcon];
-            if (webglext2.hasval(iconTexture)) {
+            if (webglext2.isNotEmpty(iconTexture)) {
               iconWidth = webglext2.isNumber(iconsForceWidth) ? iconsForceWidth : iconsForceWidth === "imageSize" ? iconTexture.w : null;
               iconHeight = webglext2.isNumber(iconsForceHeight) ? iconsForceHeight : iconsForceHeight === "imageSize" ? iconTexture.h : null;
-              var wIconKnown = webglext2.hasval(iconWidth);
-              var hIconKnown = webglext2.hasval(iconHeight);
+              var wIconKnown = webglext2.isNotEmpty(iconWidth);
+              var hIconKnown = webglext2.isNotEmpty(iconHeight);
               if (!wIconKnown && !hIconKnown) {
                 iconHeight = Math.round(iconsSizeFactor * (laneHeight - labelTopMargin - labelBottomMargin));
                 iconWidth = iconTexture.w * iconHeight / iconTexture.h;
@@ -10715,7 +9684,7 @@ var webglext;
               }
             }
           }
-          if (webglext2.hasval(iconTexture)) {
+          if (webglext2.isNotEmpty(iconTexture)) {
             var xStartLabel = xStart + wLeftIndent - (wSpacing + wIcon + wText) * labelHPos + wTotal * labelHAlign;
             var xEndLabel = xStartLabel + (wSpacing + wIcon + wText);
             if (xStartLabel < xLeftMin) {
@@ -10727,7 +9696,7 @@ var webglext;
               textureRenderer.draw(gl, iconTexture, xFrac, yFrac, { xAnchor: labelHPos, yAnchor: labelVPos, width: iconWidth, height: iconHeight });
             }
           }
-          if (webglext2.hasval(textTexture)) {
+          if (webglext2.isNotEmpty(textTexture)) {
             var xStartLabel = xStart + wLeftIndent - (wSpacing + wIcon + wText) * labelHPos + wTotal * labelHAlign;
             var xEndLabel = xStartLabel + (wSpacing + wIcon + wText);
             if (xStartLabel < xLeftMin) {
@@ -10767,14 +9736,14 @@ var webglext;
     var rowTopPadding = options.rowTopPadding;
     var rowBottomPadding = options.rowBottomPadding;
     var laneHeight = options.laneHeight;
-    var topMargin = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.topMargin) ? barOpts.topMargin : 1.2;
-    var bottomMargin = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.bottomMargin) ? barOpts.bottomMargin : 1.2;
-    var borderThickness = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.borderThickness) ? barOpts.borderThickness : 2;
-    var cornerType = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.cornerType) ? barOpts.cornerType : JointType.BEVEL;
-    var defaultColor = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.defaultColor) ? barOpts.defaultColor : options.timelineFgColor.withAlphaTimes(0.4);
-    var defaultBorderColor = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.defaultBorderColor) ? barOpts.defaultBorderColor : null;
-    var selectedBorderColor = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.selectedBorderColor) ? barOpts.selectedBorderColor : options.timelineFgColor;
-    var minimumVisibleWidth = webglext2.hasval(barOpts) && webglext2.hasval(barOpts.minimumVisibleWidth) ? barOpts.minimumVisibleWidth : 0;
+    var topMargin = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.topMargin) ? barOpts.topMargin : 1.2;
+    var bottomMargin = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.bottomMargin) ? barOpts.bottomMargin : 1.2;
+    var borderThickness = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.borderThickness) ? barOpts.borderThickness : 2;
+    var cornerType = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.cornerType) ? barOpts.cornerType : JointType.BEVEL;
+    var defaultColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.defaultColor) ? barOpts.defaultColor : options.timelineFgColor.withAlphaTimes(0.4);
+    var defaultBorderColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.defaultBorderColor) ? barOpts.defaultBorderColor : null;
+    var selectedBorderColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.selectedBorderColor) ? barOpts.selectedBorderColor : options.timelineFgColor;
+    var minimumVisibleWidth = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.minimumVisibleWidth) ? barOpts.minimumVisibleWidth : 0;
     var selection = ui.selection;
     var xyFrac_vColor_VERTSHADER = webglext2.concatLines("                                                                ", "  attribute vec2 a_XyFrac;                                      ", "  attribute vec4 a_Color;                                       ", "                                                                ", "  varying vec4 v_Color;                                         ", "                                                                ", "  void main( ) {                                                ", "      gl_Position = vec4( ( -1.0 + 2.0*a_XyFrac ), 0.0, 1.0 );  ", "      v_Color = a_Color;                                        ", "  }                                                             ", "                                                                ");
     var program = new webglext2.Program(xyFrac_vColor_VERTSHADER, webglext2.varyingColor_FRAGSHADER);
@@ -10818,8 +9787,8 @@ var webglext;
         var event = lane.event(eventIndex);
         var wBorder = borderThickness / viewport.w;
         var hBorder = borderThickness / viewport.h;
-        var _topMargin = webglext2.hasval(event.topMargin) ? event.topMargin : topMargin;
-        var _bottomMargin = webglext2.hasval(event.bottomMargin) ? event.bottomMargin : bottomMargin;
+        var _topMargin = webglext2.isNotEmpty(event.topMargin) ? event.topMargin : topMargin;
+        var _bottomMargin = webglext2.isNotEmpty(event.bottomMargin) ? event.bottomMargin : bottomMargin;
         var jTop = rowTopPadding + laneIndex * laneHeight + _topMargin;
         var yTop = (viewport.h - jTop) / viewport.h;
         var jBottom = rowTopPadding + (laneIndex + 1) * laneHeight - _bottomMargin;
@@ -10923,18 +9892,18 @@ var webglext;
 (function(webglext2) {
   function newTimeseriesRowPaneFactory(rowOptions) {
     return function(drawable, timeAxis, dataAxis, model, row, ui, options) {
-      var rowTopPadding = webglext2.hasval(rowOptions) && webglext2.hasval(rowOptions.rowTopPadding) ? rowOptions.rowTopPadding : 6;
-      var rowBottomPadding = webglext2.hasval(rowOptions) && webglext2.hasval(rowOptions.rowBottomPadding) ? rowOptions.rowBottomPadding : 6;
-      var axisWidth = webglext2.hasval(rowOptions) && webglext2.hasval(rowOptions.axisWidth) ? rowOptions.axisWidth : 60;
-      var painterFactories = webglext2.hasval(rowOptions) && webglext2.hasval(rowOptions.painterFactories) ? rowOptions.painterFactories : [];
-      var axisOptions = webglext2.hasval(rowOptions) && webglext2.hasval(rowOptions.axisOptions) ? rowOptions.axisOptions : {};
+      var rowTopPadding = webglext2.isNotEmpty(rowOptions) && webglext2.isNotEmpty(rowOptions.rowTopPadding) ? rowOptions.rowTopPadding : 6;
+      var rowBottomPadding = webglext2.isNotEmpty(rowOptions) && webglext2.isNotEmpty(rowOptions.rowBottomPadding) ? rowOptions.rowBottomPadding : 6;
+      var axisWidth = webglext2.isNotEmpty(rowOptions) && webglext2.isNotEmpty(rowOptions.axisWidth) ? rowOptions.axisWidth : 60;
+      var painterFactories = webglext2.isNotEmpty(rowOptions) && webglext2.isNotEmpty(rowOptions.painterFactories) ? rowOptions.painterFactories : [];
+      var axisOptions = webglext2.isNotEmpty(rowOptions) && webglext2.isNotEmpty(rowOptions.axisOptions) ? rowOptions.axisOptions : {};
       var keyPrefix = options.isMaximized ? "maximized-" : "";
       var getRowHeight = function() {
         if (options.isMaximized) {
           return null;
-        } else if (webglext2.hasval(row.rowHeight)) {
+        } else if (webglext2.isNotEmpty(row.rowHeight)) {
           return row.rowHeight;
-        } else if (webglext2.hasval(rowOptions) && webglext2.hasval(rowOptions.rowHeight)) {
+        } else if (webglext2.isNotEmpty(rowOptions) && webglext2.isNotEmpty(rowOptions.rowHeight)) {
           return rowOptions.rowHeight;
         } else {
           return 135;
@@ -10948,15 +9917,15 @@ var webglext;
       var rowUi = ui.rowUi(row.rowGuid);
       var input = ui.input;
       var selection = ui.selection;
-      if (!webglext2.hasval(axisOptions.font))
+      if (!webglext2.isNotEmpty(axisOptions.font))
         axisOptions.font = timelineFont;
-      if (!webglext2.hasval(axisOptions.tickColor))
+      if (!webglext2.isNotEmpty(axisOptions.tickColor))
         axisOptions.tickColor = timelineFgColor;
-      if (!webglext2.hasval(axisOptions.textColor))
+      if (!webglext2.isNotEmpty(axisOptions.textColor))
         axisOptions.textColor = timelineFgColor;
-      if (!webglext2.hasval(axisOptions.showLabel))
+      if (!webglext2.isNotEmpty(axisOptions.showLabel))
         axisOptions.showLabel = true;
-      if (!webglext2.hasval(axisOptions.shortenLabels))
+      if (!webglext2.isNotEmpty(axisOptions.shortenLabels))
         axisOptions.shortenLabels = false;
       var redraw = function() {
         drawable.redraw();
@@ -10968,56 +9937,16 @@ var webglext;
         yAxisPane.layout = { updatePrefSize: webglext2.fixedSize(axisWidth, getRowHeight()) };
       };
       row.attrsChanged.on(updateRowHeight);
-      var isDragMode = function(viewport, i, j) {
-        var fragment = getNearestFragment(viewport, i, j).fragment;
-        return webglext2.hasval(fragment);
-      };
-      var rowContentPane = new webglext2.Pane(webglext2.newColumnLayout(), true, isDragMode);
       var underlayPane = new webglext2.Pane(webglext2.newOverlayLayout(), false);
       var overlayPane = new webglext2.Pane(null, false);
       var painterOptions = { timelineFont, timelineFgColor, timelineThickness: 1, rowTopPadding, rowBottomPadding };
-      for (var n = 0; n < painterFactories.length; n++) {
-        var createPainter = painterFactories[n];
-        rowContentPane.addPainter(createPainter(drawable, timeAxis, dataAxis, model, row, ui, painterOptions));
-      }
       yAxisPane.addPainter(webglext2.newEdgeAxisPainter(dataAxis, webglext2.Side.RIGHT, axisOptions));
-      rowContentPane.addPane(yAxisPane, 0);
-      underlayPane.addPane(rowContentPane, true);
-      underlayPane.addPane(overlayPane, false);
-      rowUi.addPane(keyPrefix + "content", rowContentPane);
       rowUi.addPane(keyPrefix + "overlay", overlayPane);
       rowUi.addPane(keyPrefix + "underlay", underlayPane);
       rowUi.addPane(keyPrefix + "y-axis", yAxisPane);
       row.timeseriesGuids.valueAdded.on(redraw);
       row.timeseriesGuids.valueMoved.on(redraw);
       row.timeseriesGuids.valueRemoved.on(redraw);
-      var addFragmentRedraw = function(fragmentGuid) {
-        var fragment = model.timeseriesFragment(fragmentGuid);
-        fragment.dataChanged.on(redraw);
-      };
-      var removeFragmentRedraw = function(fragmentGuid) {
-        var fragment = model.timeseriesFragment(fragmentGuid);
-        fragment.dataChanged.off(redraw);
-      };
-      var addRedraw = function(timeseriesGuid) {
-        var timeseries = model.timeseries(timeseriesGuid);
-        timeseries.attrsChanged.on(redraw);
-        timeseries.fragmentGuids.valueAdded.on(redraw);
-        timeseries.fragmentGuids.valueRemoved.on(redraw);
-        timeseries.fragmentGuids.forEach(addFragmentRedraw);
-        timeseries.fragmentGuids.valueAdded.on(addFragmentRedraw);
-        timeseries.fragmentGuids.valueRemoved.on(removeFragmentRedraw);
-      };
-      row.timeseriesGuids.forEach(addRedraw);
-      row.timeseriesGuids.valueAdded.on(addRedraw);
-      var removeRedraw = function(timeseriesGuid) {
-        var timeseries = model.timeseries(timeseriesGuid);
-        timeseries.attrsChanged.off(redraw);
-        timeseries.fragmentGuids.valueAdded.off(redraw);
-        timeseries.fragmentGuids.valueRemoved.off(redraw);
-        timeseries.fragmentGuids.forEach(removeFragmentRedraw);
-      };
-      row.timeseriesGuids.valueRemoved.on(removeRedraw);
       var timeAtCoords_PMILLIS = function(viewport, i) {
         return timeAxis.tAtFrac_PMILLIS(viewport.xFrac(i));
       };
@@ -11026,201 +9955,17 @@ var webglext;
       };
       var timeseriesDragMode = null;
       var recentMouseMove = null;
-      rowContentPane.mouseMove.on(function(ev) {
-        input.mouseMove.fire(ev);
-        if (!webglext2.hasval(timeseriesDragMode)) {
-          input.timeHover.fire(timeAtPointer_PMILLIS(ev), ev);
-          input.rowHover.fire(row, ev);
-        }
-        recentMouseMove = ev;
-      });
-      rowContentPane.mouseExit.on(function(ev) {
-        input.mouseExit.fire(ev);
-        if (!webglext2.hasval(timeseriesDragMode)) {
-          input.timeHover.fire(null, ev);
-          input.rowHover.fire(null, ev);
-          input.eventHover.fire(null, ev);
-        }
-        recentMouseMove = null;
-      });
       var uiMillisPerPxChanged = function() {
-        if (!webglext2.hasval(timeseriesDragMode) && recentMouseMove != null) {
+        if (!webglext2.isNotEmpty(timeseriesDragMode) && recentMouseMove != null) {
           var ev = recentMouseMove;
           input.timeHover.fire(timeAtPointer_PMILLIS(ev), ev);
         }
       };
       ui.millisPerPx.changed.on(uiMillisPerPxChanged);
-      rowContentPane.mouseUp.on(function(ev) {
-        input.mouseUp.fire(ev);
-      });
-      rowContentPane.mouseDown.on(function(ev) {
-        input.mouseDown.fire(ev);
-      });
-      rowContentPane.mouseWheel.on(options.mouseWheelListener);
-      rowContentPane.contextMenu.on(function(ev) {
-        input.contextMenu.fire(ev);
-      });
-      var getNearestAnnotation = function(viewport, i, j) {
-        var pickBuffer_PIXEL = 10;
-        var vppx = ui.millisPerPx.value;
-        var vppy = dataAxis.vSize / rowContentPane.viewport.h;
-        var pickBuffer_PMILLIS = pickBuffer_PIXEL * vppx;
-        var ev_time = timeAtCoords_PMILLIS(viewport, i);
-        var ev_value = dataAxis.vAtFrac(viewport.yFrac(j));
-        var bestAnnotation = null;
-        var best_PIXEL = null;
-        if (ev_time) {
-          for (var i = 0; i < row.annotationGuids.length; i++) {
-            var annotationGuid = row.annotationGuids.valueAt(i);
-            var annotation = model.annotation(annotationGuid);
-            var styleGuid = annotation.styleGuid;
-            var style = ui.annotationStyle(styleGuid);
-            var dy_PIXEL = Math.abs(annotation.y - ev_value) / vppy;
-            var dx_PIXEL = Math.abs(annotation.time_PMILLIS - ev_time) / vppx;
-            if (style.uiHint == "point") {
-              var d_PIXEL = Math.sqrt(dx_PIXEL * dx_PIXEL + dy_PIXEL * dy_PIXEL);
-            } else if (style.uiHint == "horizontal-line") {
-              var d_PIXEL = dy_PIXEL;
-            } else if (style.uiHint == "vertical-line") {
-              var d_PIXEL = dx_PIXEL;
-            }
-            if (d_PIXEL < pickBuffer_PIXEL) {
-              if (!webglext2.hasval(best_PIXEL) || d_PIXEL < best_PIXEL) {
-                bestAnnotation = annotation;
-                best_PIXEL = d_PIXEL;
-              }
-            }
-          }
-        }
-        return bestAnnotation;
-      };
-      var getNearestAnnotationEvent = function(ev) {
-        return getNearestAnnotation(ev.paneViewport, ev.i, ev.j);
-      };
-      overlayPane.mouseMove.on(function(ev) {
-        var y = dataAxis.vAtFrac(webglext2.yFrac(ev));
-        selection.hoveredY.value = y;
-        var result = getNearestAnnotationEvent(ev);
-        selection.hoveredAnnotation.value = result;
-      });
       selection.hoveredAnnotation.changed.on(redraw);
       overlayPane.mouseExit.on(function() {
         selection.hoveredY.value = void 0;
         selection.hoveredAnnotation.value = null;
-      });
-      function chooseTimeseriesDragMode(ui2, hoveredTimeseriesFragment) {
-        if (!webglext2.hasval(hoveredTimeseriesFragment)) {
-          return null;
-        } else {
-          return hoveredTimeseriesFragment.userEditMode;
-        }
-      }
-      var updateCursor = function() {
-        if (!timeseriesDragMode) {
-          var mouseCursors = { "xy": "move", "y": "ns-resize" };
-          rowContentPane.mouseCursor = mouseCursors[chooseTimeseriesDragMode(ui, selection.hoveredTimeseries.fragment)];
-        }
-      };
-      ui.millisPerPx.changed.on(updateCursor);
-      selection.hoveredTimeseries.changed.on(updateCursor);
-      var getNearestFragment = function(viewport, i, j) {
-        var pickBuffer_PIXEL = 10;
-        var vppx = ui.millisPerPx.value;
-        var vppy = dataAxis.vSize / rowContentPane.viewport.h;
-        var pickBuffer_PMILLIS = pickBuffer_PIXEL * vppx;
-        var bestFragment;
-        var bestIndex;
-        var best_PIXEL;
-        var ev_time = timeAtCoords_PMILLIS(viewport, i);
-        var ev_value = dataAxis.vAtFrac(viewport.yFrac(j));
-        if (ev_time) {
-          for (var i = 0; i < row.timeseriesGuids.length; i++) {
-            var timeseriesGuid = row.timeseriesGuids.valueAt(i);
-            var timeseries = model.timeseries(timeseriesGuid);
-            for (var j = 0; j < timeseries.fragmentGuids.length; j++) {
-              var fragmentGuid = timeseries.fragmentGuids.valueAt(j);
-              var fragment = model.timeseriesFragment(fragmentGuid);
-              if (fragment.start_PMILLIS - pickBuffer_PMILLIS < ev_time && fragment.end_PMILLIS + pickBuffer_PMILLIS > ev_time) {
-                var index = timeseries.uiHint == "bars" ? webglext2.indexAtOrBefore(fragment.times_PMILLIS, ev_time) : webglext2.indexNearest(fragment.times_PMILLIS, ev_time);
-                var value = fragment.data[index];
-                var time = fragment.times_PMILLIS[index];
-                var dy_PIXEL = (value - ev_value) / vppy;
-                var dx_PIXEL = (time - ev_time) / vppx;
-                var d_PIXEL = Math.sqrt(dx_PIXEL * dx_PIXEL + dy_PIXEL * dy_PIXEL);
-                var filter = function() {
-                  if (timeseries.uiHint == "bars") {
-                    return timeseries.baseline < ev_value && ev_value < value || timeseries.baseline > ev_value && ev_value > value;
-                  } else {
-                    return d_PIXEL < pickBuffer_PIXEL;
-                  }
-                };
-                if ((!best_PIXEL || d_PIXEL < best_PIXEL) && filter()) {
-                  best_PIXEL = d_PIXEL;
-                  bestFragment = fragment;
-                  bestIndex = index;
-                }
-              }
-            }
-          }
-        }
-        return { fragment: bestFragment, index: bestIndex };
-      };
-      var getNearestFragmentEvent = function(ev) {
-        return getNearestFragment(ev.paneViewport, ev.i, ev.j);
-      };
-      rowContentPane.mouseMove.on(function(ev) {
-        if (!webglext2.hasval(timeseriesDragMode)) {
-          var result = getNearestFragmentEvent(ev);
-          selection.hoveredTimeseries.setValue(result.fragment, result.index);
-        }
-      });
-      selection.hoveredTimeseries.changed.on(redraw);
-      rowContentPane.mouseExit.on(function() {
-        selection.hoveredTimeseries.clearValue();
-      });
-      rowContentPane.mouseDown.on(function(ev) {
-        if (webglext2.isLeftMouseDown(ev.mouseEvent)) {
-          timeseriesDragMode = chooseTimeseriesDragMode(ui, selection.hoveredTimeseries.fragment);
-        }
-      });
-      rowContentPane.mouseMove.on(function(ev) {
-        if (webglext2.hasval(timeseriesDragMode)) {
-          var x = timeAtPointer_PMILLIS(ev);
-          var y = dataAxis.vAtFrac(webglext2.yFrac(ev));
-          var fragment = selection.hoveredTimeseries.fragment;
-          var fragment_time = fragment.times_PMILLIS;
-          if (timeseriesDragMode === "y") {
-            fragment.setData(selection.hoveredTimeseries.index, y);
-          } else if (timeseriesDragMode === "xy") {
-            var index = fragment.setData(selection.hoveredTimeseries.index, y, x);
-            if (index !== selection.hoveredTimeseries.index) {
-              selection.hoveredTimeseries.setValue(fragment, index);
-            }
-          }
-        }
-      });
-      rowContentPane.mouseUp.on(function(ev) {
-        timeseriesDragMode = null;
-      });
-      rowContentPane.dispose.on(function() {
-        rowUi.removePane(keyPrefix + "content");
-        rowUi.removePane(keyPrefix + "overlay");
-        rowUi.removePane(keyPrefix + "underlay");
-        rowUi.removePane(keyPrefix + "y-axis");
-        dataAxis.limitsChanged.off(redraw);
-        row.timeseriesGuids.valueAdded.off(redraw);
-        row.timeseriesGuids.valueMoved.off(redraw);
-        row.timeseriesGuids.valueRemoved.off(redraw);
-        row.timeseriesGuids.valueAdded.off(addRedraw);
-        row.timeseriesGuids.valueRemoved.off(removeRedraw);
-        selection.hoveredTimeseries.changed.off(redraw);
-        row.attrsChanged.off(updateRowHeight);
-        row.timeseriesGuids.forEach(function(timeseriesGuid) {
-          var timeseries = model.timeseries(timeseriesGuid);
-          timeseries.attrsChanged.off(redraw);
-          timeseries.fragmentGuids.valueAdded.off(redraw);
-          timeseries.fragmentGuids.valueRemoved.off(redraw);
-        });
       });
       return underlayPane;
     };
@@ -11229,8 +9974,8 @@ var webglext;
   function newTimeseriesPainterFactory(options) {
     return function(drawable, timeAxis, dataAxis, model, rowModel, ui) {
       var selection = ui.selection;
-      var defaultColor = webglext2.hasval(options) && webglext2.hasval(options.timelineFgColor) ? options.timelineFgColor : webglext2.white;
-      var defaultThickness = webglext2.hasval(options) && webglext2.hasval(options.timelineThickness) ? options.timelineThickness : 1;
+      var defaultColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.timelineFgColor) ? options.timelineFgColor : webglext2.white;
+      var defaultThickness = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.timelineThickness) ? options.timelineThickness : 1;
       var modelview_pointsize_VERTSHADER = webglext2.concatLines("    uniform mat4 u_modelViewMatrix;                       ", "    attribute vec4 a_Position;                            ", "    uniform float u_PointSize;                            ", "                                                          ", "    void main( ) {                                        ", "        gl_PointSize = u_PointSize ;                      ", "        gl_Position = u_modelViewMatrix * a_Position ;    ", "    }                                                     ", "                                                          ");
       var program = new webglext2.Program(modelview_pointsize_VERTSHADER, webglext2.solid_FRAGSHADER);
       var u_Color = new webglext2.UniformColor(program, "u_Color");
@@ -11245,148 +9990,6 @@ var webglext;
         gl.enable(webglext2.GL.BLEND);
         program.use(gl);
         u_modelViewMatrix.setData(gl, webglext2.glOrthoAxis(axis));
-        for (var i = 0; i < rowModel.timeseriesGuids.length; i++) {
-          var totalSize = 0;
-          var sortedFragments = new Array();
-          var timeseriesGuid = rowModel.timeseriesGuids.valueAt(i);
-          var timeseries = model.timeseries(timeseriesGuid);
-          for (var j = 0; j < timeseries.fragmentGuids.length; j++) {
-            var timeseriesFragmentGuid = timeseries.fragmentGuids.valueAt(j);
-            var fragment = model.timeseriesFragment(timeseriesFragmentGuid);
-            sortedFragments.push(fragment);
-            totalSize += fragment.times_PMILLIS.length;
-          }
-          sortedFragments.sort(function(a, b) {
-            return a.start_PMILLIS - b.start_PMILLIS;
-          });
-          if (timeseries.uiHint == "lines" || timeseries.uiHint == "points" || timeseries.uiHint == "lines-and-points" || timeseries.uiHint == void 0) {
-            var size = totalSize * 2;
-            xys = webglext2.ensureCapacityFloat32(xys, size);
-            var index = 0;
-            for (var j = 0; j < sortedFragments.length; j++) {
-              var fragment = sortedFragments[j];
-              var data = fragment.data;
-              var times_PMILLIS = fragment.times_PMILLIS;
-              for (var k = 0; k < data.length; k++, index += 2) {
-                xys[index] = timeAxis.vAtTime(times_PMILLIS[k]);
-                xys[index + 1] = data[k];
-              }
-            }
-            var lineColor = webglext2.hasval(timeseries.lineColor) ? timeseries.lineColor : defaultColor;
-            u_Color.setData(gl, lineColor);
-            var lineThickness = webglext2.hasval(timeseries.lineThickness) ? timeseries.lineThickness : defaultThickness;
-            gl.lineWidth(lineThickness);
-            xysBuffer.setData(xys.subarray(0, index));
-            a_Position.setDataAndEnable(gl, xysBuffer, 2, webglext2.GL.FLOAT);
-            if (timeseries.uiHint == "lines" || timeseries.uiHint == "lines-and-points" || timeseries.uiHint == void 0) {
-              gl.drawArrays(webglext2.GL.LINE_STRIP, 0, size / 2);
-            }
-            if (timeseries.uiHint == "points" || timeseries.uiHint == "lines-and-points") {
-              var pointColor = webglext2.hasval(timeseries.pointColor) ? timeseries.pointColor : defaultColor;
-              u_Color.setData(gl, pointColor);
-              u_PointSize.setData(gl, timeseries.pointSize);
-              gl.drawArrays(webglext2.GL.POINTS, 0, size / 2);
-            }
-          } else if (timeseries.uiHint == "bars") {
-            if (totalSize >= 2) {
-              var baseline = timeseries.baseline;
-              var size = (totalSize - 1) * 12;
-              xys = webglext2.ensureCapacityFloat32(xys, size);
-              var index = 0;
-              for (var j = 0; j < sortedFragments.length; j++) {
-                var fragment = sortedFragments[j];
-                var data = fragment.data;
-                var times_PMILLIS = fragment.times_PMILLIS;
-                for (var k = 0; k < data.length - 1; k++) {
-                  var x1 = timeAxis.vAtTime(times_PMILLIS[k]);
-                  var y1 = data[k];
-                  var x2 = timeAxis.vAtTime(times_PMILLIS[k + 1]);
-                  var y2 = data[k + 1];
-                  index = webglext2.putQuadXys(xys, index, x1, x2, y1, baseline);
-                }
-              }
-              var lineColor = webglext2.hasval(timeseries.lineColor) ? timeseries.lineColor : defaultColor;
-              u_Color.setData(gl, lineColor);
-              xysBuffer.setData(xys.subarray(0, index));
-              a_Position.setDataAndEnable(gl, xysBuffer, 2, webglext2.GL.FLOAT);
-              gl.drawArrays(webglext2.GL.TRIANGLES, 0, size / 2);
-            }
-          } else if (timeseries.uiHint == "area") {
-            var baseline = timeseries.baseline;
-            var size = totalSize * 4;
-            xys = webglext2.ensureCapacityFloat32(xys, size);
-            var index = 0;
-            for (var j = 0; j < sortedFragments.length; j++) {
-              var fragment = sortedFragments[j];
-              var data = fragment.data;
-              var times_PMILLIS = fragment.times_PMILLIS;
-              for (var k = 0; k < data.length; k++, index += 4) {
-                var x1 = timeAxis.vAtTime(times_PMILLIS[k]);
-                var y1 = data[k];
-                xys[index] = x1;
-                xys[index + 1] = baseline;
-                xys[index + 2] = x1;
-                xys[index + 3] = y1;
-              }
-            }
-            var lineColor = webglext2.hasval(timeseries.lineColor) ? timeseries.lineColor : defaultColor;
-            u_Color.setData(gl, lineColor);
-            xysBuffer.setData(xys.subarray(0, index));
-            a_Position.setDataAndEnable(gl, xysBuffer, 2, webglext2.GL.FLOAT);
-            gl.drawArrays(webglext2.GL.TRIANGLE_STRIP, 0, size / 2);
-          }
-          if (selection.hoveredTimeseries.fragment && timeseries.fragmentGuids.hasValue(selection.hoveredTimeseries.fragment.fragmentGuid)) {
-            if (timeseries.uiHint == "area" || timeseries.uiHint == "lines" || timeseries.uiHint == "points" || timeseries.uiHint == "lines-and-points" || timeseries.uiHint == void 0) {
-              var size = 8;
-              xys = webglext2.ensureCapacityFloat32(xys, size);
-              var vppx = timeAxis.vSize / viewport.w;
-              var vppy = dataAxis.vSize / viewport.h;
-              var highlightSize = webglext2.hasval(timeseries.pointSize) ? timeseries.pointSize : 5;
-              var bufferx = highlightSize / 2 * vppx;
-              var buffery = highlightSize / 2 * vppy;
-              var fragment = selection.hoveredTimeseries.fragment;
-              var y = selection.hoveredTimeseries.data;
-              var x = timeAxis.vAtTime(selection.hoveredTimeseries.times_PMILLIS);
-              xys[0] = x - bufferx;
-              xys[1] = y - buffery;
-              xys[2] = x + bufferx;
-              xys[3] = y - buffery;
-              xys[4] = x + bufferx;
-              xys[5] = y + buffery;
-              xys[6] = x - bufferx;
-              xys[7] = y + buffery;
-              var color = webglext2.hasval(timeseries.pointColor) ? timeseries.pointColor : defaultColor;
-              u_Color.setData(gl, webglext2.darker(color, 0.8));
-              xysBuffer.setData(xys.subarray(0, size));
-              a_Position.setDataAndEnable(gl, xysBuffer, 2, webglext2.GL.FLOAT);
-              gl.drawArrays(webglext2.GL.LINE_LOOP, 0, size / 2);
-            } else if (timeseries.uiHint == "bars") {
-              var size = 8;
-              xys = webglext2.ensureCapacityFloat32(xys, size);
-              var fragment = selection.hoveredTimeseries.fragment;
-              var index = selection.hoveredTimeseries.index;
-              if (index < fragment.data.length) {
-                var x1 = timeAxis.vAtTime(fragment.times_PMILLIS[index]);
-                var y1 = fragment.data[index];
-                var x2 = timeAxis.vAtTime(fragment.times_PMILLIS[index + 1]);
-                var y2 = fragment.data[index + 1];
-                xys[0] = x1;
-                xys[1] = y1;
-                xys[2] = x2;
-                xys[3] = y1;
-                xys[4] = x2;
-                xys[5] = baseline;
-                xys[6] = x1;
-                xys[7] = baseline;
-                var color = webglext2.hasval(timeseries.lineColor) ? timeseries.lineColor : defaultColor;
-                u_Color.setData(gl, webglext2.darker(color, 0.8));
-                xysBuffer.setData(xys.subarray(0, size));
-                a_Position.setDataAndEnable(gl, xysBuffer, 2, webglext2.GL.FLOAT);
-                gl.drawArrays(webglext2.GL.LINE_LOOP, 0, size / 2);
-              }
-            }
-          }
-        }
         a_Position.disable(gl);
         program.endUse(gl);
       };
@@ -11397,12 +10000,7 @@ var webglext;
 var webglext;
 (function(webglext2) {
   webglext2.timeseriesRowPainterFactories_DEFAULT = [
-    webglext2.newTimeseriesPainterFactory(),
-    webglext2.newTimeseriesAnnotationPainterFactory(),
-    webglext2.newTimeseriesCursorPainterFactory({
-      font: "16px verdana,sans-serif",
-      buffer_px: 6
-    })
+    webglext2.newTimeseriesPainterFactory()
   ];
   webglext2.eventsRowPaneFactory_DEFAULT = webglext2.newEventsRowPaneFactory({
     laneHeight: 40,
@@ -11417,7 +10015,7 @@ var webglext;
   });
   webglext2.timeseriesRowPaneFactory_DEFAULT = webglext2.newTimeseriesRowPaneFactory({
     painterFactories: webglext2.timeseriesRowPainterFactories_DEFAULT,
-    axisOptions: { tickSpacing: 34 }
+    axisOptions: { tickSpacings: 34 }
   });
   function rowPaneFactoryChooser_DEFAULT(row) {
     if (!row.eventGuids.isEmpty) {
@@ -11551,44 +10149,46 @@ var webglext;
   }(webglext2.Pane);
   webglext2.TimelinePane = TimelinePane;
   function newTimelinePane(drawable, timeAxis, model, options, ui) {
-    var font = webglext2.hasval(options) && webglext2.hasval(options.font) ? options.font : "11px verdana,sans-serif";
-    var rowPaneFactoryChooser = webglext2.hasval(options) && webglext2.hasval(options.rowPaneFactoryChooser) ? options.rowPaneFactoryChooser : webglext2.rowPaneFactoryChooser_DEFAULT;
-    var showScrollbar = webglext2.hasval(options) && webglext2.hasval(options.showScrollbar) ? options.showScrollbar : true;
-    var scrollbarOptions = webglext2.hasval(options) ? options.scrollbarOptions : null;
-    var fgColor = webglext2.hasval(options) && webglext2.hasval(options.fgColor) ? options.fgColor : webglext2.white;
-    var bgColor = webglext2.hasval(options) && webglext2.hasval(options.bgColor) ? options.bgColor : webglext2.rgb(0.098, 0.165, 0.243);
-    var rowLabelColor = webglext2.hasval(options) && webglext2.hasval(options.rowLabelColor) ? options.rowLabelColor : fgColor;
-    var rowLabelBgColor = webglext2.hasval(options) && webglext2.hasval(options.rowLabelBgColor) ? options.rowLabelBgColor : bgColor;
-    var groupLabelColor = webglext2.hasval(options) && webglext2.hasval(options.groupLabelColor) ? options.groupLabelColor : fgColor;
-    var axisLabelColor = webglext2.hasval(options) && webglext2.hasval(options.axisLabelColor) ? options.axisLabelColor : fgColor;
-    var rowBgColor = webglext2.hasval(options) && webglext2.hasval(options.rowBgColor) ? options.rowBgColor : webglext2.rgb(0.02, 0.086, 0.165);
-    var rowAltBgColor = webglext2.hasval(options) && webglext2.hasval(options.rowAltBgColor) ? options.rowAltBgColor : webglext2.rgb(0.02, 0.086, 0.165);
-    var gridColor = webglext2.hasval(options) && webglext2.hasval(options.gridColor) ? options.gridColor : webglext2.gray(0.5);
-    var selectedIntervalFillColor = webglext2.hasval(options) && webglext2.hasval(options.selectedIntervalFillColor) ? options.selectedIntervalFillColor : webglext2.rgba(0, 0.6, 0.8, 0.157);
-    var selectedIntervalBorderColor = webglext2.hasval(options) && webglext2.hasval(options.selectedIntervalBorderColor) ? options.selectedIntervalBorderColor : webglext2.rgb(0, 0.2, 1);
-    var showTopAxis = webglext2.hasval(options) && webglext2.hasval(options.showTopAxis) ? options.showTopAxis : true;
-    var showBottomAxis = webglext2.hasval(options) && webglext2.hasval(options.showBottomAxis) ? options.showBottomAxis : true;
-    var topTimeZone = webglext2.hasval(options) && webglext2.hasval(options.topTimeZone) ? options.topTimeZone : "+0000";
-    var bottomTimeZone = webglext2.hasval(options) && webglext2.hasval(options.bottomTimeZone) ? options.bottomTimeZone : "+0000";
-    var tickSpacing = webglext2.hasval(options) && webglext2.hasval(options.tickSpacing) ? options.tickSpacing : 60;
-    var axisLabelAlign = webglext2.hasval(options) && webglext2.hasval(options.axisLabelAlign) ? options.axisLabelAlign : 0.5;
-    var groupLabelInsets = webglext2.hasval(options) && webglext2.hasval(options.groupLabelInsets) ? options.groupLabelInsets : webglext2.newInsets(6, 10);
-    var rowLabelInsets = webglext2.hasval(options) && webglext2.hasval(options.rowLabelInsets) ? options.rowLabelInsets : webglext2.newInsets(0, 35);
-    var rowLabelPaneWidth = webglext2.hasval(options) && webglext2.hasval(options.rowLabelPaneWidth) ? options.rowLabelPaneWidth : 140;
-    var rowSeparatorHeight = webglext2.hasval(options) && webglext2.hasval(options.rowSeparatorHeight) ? options.rowSeparatorHeight : 2;
-    var scrollbarWidth = webglext2.hasval(options) && webglext2.hasval(options.scrollbarWidth) ? options.scrollbarWidth : 16;
+    var font = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.font) ? options.font : "11px verdana,sans-serif";
+    var rowPaneFactoryChooser = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowPaneFactoryChooser) ? options.rowPaneFactoryChooser : webglext2.rowPaneFactoryChooser_DEFAULT;
+    var showScrollbar = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.showScrollbar) ? options.showScrollbar : true;
+    var scrollbarOptions = webglext2.isNotEmpty(options) ? options.scrollbarOptions : null;
+    var fgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.fgColor) ? options.fgColor : webglext2.white;
+    var bgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.bgColor) ? options.bgColor : webglext2.rgb(0.098, 0.165, 0.243);
+    var rowLabelColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelColor) ? options.rowLabelColor : fgColor;
+    var rowLabelBgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelBgColor) ? options.rowLabelBgColor : bgColor;
+    var groupLabelColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.groupLabelColor) ? options.groupLabelColor : fgColor;
+    var axisLabelColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.axisLabelColor) ? options.axisLabelColor : fgColor;
+    var rowBgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowBgColor) ? options.rowBgColor : webglext2.rgb(0.02, 0.086, 0.165);
+    var rowAltBgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowAltBgColor) ? options.rowAltBgColor : webglext2.rgb(0.02, 0.086, 0.165);
+    var gridColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.gridColor) ? options.gridColor : webglext2.gray(0.5);
+    var selectedIntervalFillColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.selectedIntervalFillColor) ? options.selectedIntervalFillColor : webglext2.rgba(0, 0.6, 0.8, 0.157);
+    var selectedIntervalBorderColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.selectedIntervalBorderColor) ? options.selectedIntervalBorderColor : webglext2.rgb(0, 0.2, 1);
+    var showTopAxis = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.showTopAxis) ? options.showTopAxis : true;
+    var showBottomAxis = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.showBottomAxis) ? options.showBottomAxis : true;
+    var topTimeZone = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.topTimeZone) ? options.topTimeZone : "+0000";
+    var bottomTimeZone = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.bottomTimeZone) ? options.bottomTimeZone : "+0000";
+    var tickSpacings = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSpacings) ? options.tickSpacings : 60;
+    var axisLabelAlign = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.axisLabelAlign) ? options.axisLabelAlign : 0.5;
+    showTopAxis = true;
+    topTimeZone = "2123123";
+    var groupLabelInsets = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.groupLabelInsets) ? options.groupLabelInsets : webglext2.newInsets(6, 10);
+    var rowLabelInsets = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelInsets) ? options.rowLabelInsets : webglext2.newInsets(0, 35);
+    var rowLabelPaneWidth = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelPaneWidth) ? options.rowLabelPaneWidth : 140;
+    var rowSeparatorHeight = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowSeparatorHeight) ? options.rowSeparatorHeight : 2;
+    var scrollbarWidth = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.scrollbarWidth) ? options.scrollbarWidth : 16;
     scrollbarWidth = showScrollbar ? scrollbarWidth : 0;
-    var axisPaneHeight = webglext2.hasval(options) && webglext2.hasval(options.axisPaneHeight) ? options.axisPaneHeight : 40;
-    var draggableEdgeWidth = webglext2.hasval(options) && webglext2.hasval(options.draggableEdgeWidth) ? options.draggableEdgeWidth : 6;
-    var snapToDistance = webglext2.hasval(options) && webglext2.hasval(options.snapToDistance) ? options.snapToDistance : 10;
-    var allowEventMultiSelection = webglext2.hasval(options) && webglext2.hasval(options.allowEventMultiSelection) ? options.allowEventMultiSelection : true;
-    var selectedIntervalMode = webglext2.hasval(options) && webglext2.hasval(options.selectedIntervalMode) ? options.selectedIntervalMode : "range";
-    var centerSelectedIntervalOnDoubleClick = webglext2.hasval(options) && webglext2.hasval(options.centerSelectedIntervalOnDoubleClick) ? options.centerSelectedIntervalOnDoubleClick : true;
+    var axisPaneHeight = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.axisPaneHeight) ? options.axisPaneHeight : 40;
+    var draggableEdgeWidth = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.draggableEdgeWidth) ? options.draggableEdgeWidth : 6;
+    var snapToDistance = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.snapToDistance) ? options.snapToDistance : 10;
+    var allowEventMultiSelection = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.allowEventMultiSelection) ? options.allowEventMultiSelection : true;
+    var selectedIntervalMode = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.selectedIntervalMode) ? options.selectedIntervalMode : "range";
+    var centerSelectedIntervalOnDoubleClick = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.centerSelectedIntervalOnDoubleClick) ? options.centerSelectedIntervalOnDoubleClick : true;
     var defaultMouseWheelListener = function(ev) {
       var zoomFactor = Math.pow(webglext2.axisZoomStep, ev.wheelSteps);
-      timeAxis.zoom(zoomFactor, timeAxis.vAtFrac(webglext2.xFrac(ev)));
+      timeAxis.tZoom(zoomFactor, timeAxis.vAtFrac(webglext2.xFrac(ev)));
     };
-    var mouseWheelListener = webglext2.hasval(options) && webglext2.hasval(options.mouseWheelListener) ? options.mouseWheelListener : defaultMouseWheelListener;
+    var mouseWheelListener = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.mouseWheelListener) ? options.mouseWheelListener : defaultMouseWheelListener;
     if (!ui) {
       var outsideManagedUi = false;
       ui = new webglext2.TimelineUi(model, { allowEventMultiSelection });
@@ -11612,7 +10212,30 @@ var webglext;
     selection.hoveredY.changed.on(redrawCursor);
     selection.hoveredTime_PMILLIS.changed.on(redrawCursor);
     var tickTimeZone = showTopAxis ? topTimeZone : bottomTimeZone;
-    var contentPaneOpts = { selectedIntervalMode, rowPaneFactoryChooser, font, fgColor, rowLabelColor, rowLabelBgColor, groupLabelColor, axisLabelColor, bgColor, rowBgColor, rowAltBgColor, gridColor, gridTickSpacing: tickSpacing, gridTimeZone: tickTimeZone, referenceDate: options.referenceDate, groupLabelInsets, rowLabelInsets, rowLabelPaneWidth, rowSeparatorHeight, draggableEdgeWidth, snapToDistance, mouseWheelListener };
+    var contentPaneOpts = {
+      selectedIntervalMode,
+      rowPaneFactoryChooser,
+      font,
+      fgColor,
+      rowLabelColor,
+      rowLabelBgColor,
+      groupLabelColor,
+      axisLabelColor,
+      bgColor,
+      rowBgColor,
+      rowAltBgColor,
+      gridColor,
+      gridtickSpacings: tickSpacings,
+      gridTimeZone: tickTimeZone,
+      referenceDate: options.referenceDate,
+      groupLabelInsets,
+      rowLabelInsets,
+      rowLabelPaneWidth,
+      rowSeparatorHeight,
+      draggableEdgeWidth,
+      snapToDistance,
+      mouseWheelListener
+    };
     var contentPaneArgs;
     if (showScrollbar) {
       var scrollLayout = webglext2.newVerticalScrollLayout();
@@ -11654,7 +10277,15 @@ var webglext;
     var underlayPane = new webglext2.Pane(webglext2.newRowLayout());
     ui.addPane("underlay-pane", underlayPane);
     var axisInsets = webglext2.newInsets(0, scrollbarWidth, 0, rowLabelPaneWidth);
-    var axisOpts = { tickSpacing, font, textColor: axisLabelColor, tickColor: axisLabelColor, labelAlign: axisLabelAlign, referenceDate: options.referenceDate, isFuturePositive: options.isFuturePositive };
+    var axisOpts = {
+      tickSpacings,
+      font,
+      textColor: axisLabelColor,
+      tickColor: axisLabelColor,
+      labelAlign: axisLabelAlign,
+      referenceDate: options.referenceDate,
+      isFuturePositive: options.isFuturePositive
+    };
     if (showTopAxis) {
       var topAxisPane = newTimeAxisPane(contentPaneArgs, null);
       ui.addPane("top-axis-pane", topAxisPane);
@@ -11753,13 +10384,13 @@ var webglext;
   function attachTimeAxisMouseListeners(pane, axis, args) {
     var vGrab = null;
     pane.mouseDown.on(function(ev) {
-      if (webglext2.isLeftMouseDown(ev.mouseEvent) && !webglext2.hasval(vGrab)) {
+      if (webglext2.isLeftMouseDown(ev.mouseEvent) && !webglext2.isNotEmpty(vGrab)) {
         vGrab = axis.vAtFrac(webglext2.xFrac(ev));
       }
     });
     pane.mouseMove.on(function(ev) {
-      if (webglext2.isLeftMouseDown(ev.mouseEvent) && webglext2.hasval(vGrab)) {
-        axis.pan(vGrab - axis.vAtFrac(webglext2.xFrac(ev)));
+      if (webglext2.isLeftMouseDown(ev.mouseEvent) && webglext2.isNotEmpty(vGrab)) {
+        axis.tPan(vGrab - axis.vAtFrac(webglext2.xFrac(ev)));
       }
     });
     pane.mouseUp.on(function(ev) {
@@ -11806,7 +10437,7 @@ var webglext;
       input.contextMenu.fire(ev);
     };
     axisPane.contextMenu.on(onContextMenu);
-    if (selectedIntervalMode === "single" || selectedIntervalMode === "range") {
+    if (selectedIntervalMode === "single") {
       var selection = ui.selection;
       var selectedIntervalPane = new webglext2.Pane(null, true, newTimeIntervalMask(timeAxis, selection.selectedInterval, selectedIntervalMode));
       attachTimeSelectionMouseListeners(selectedIntervalPane, timeAxis, selection.selectedInterval, input, draggableEdgeWidth, selectedIntervalMode);
@@ -11855,7 +10486,7 @@ var webglext;
     var minIntervalWidthWhenDraggingEdge = minIntervalWidthForEdgeDraggability + 1;
     pane.mouseWheel.on(function(ev) {
       var zoomFactor = Math.pow(webglext2.axisZoomStep, ev.wheelSteps);
-      timeAxis.zoom(zoomFactor, timeAxis.vAtFrac(webglext2.xFrac(ev)));
+      timeAxis.tZoom(zoomFactor, timeAxis.vAtFrac(webglext2.xFrac(ev)));
     });
     pane.contextMenu.on(function(ev) {
       input.contextMenu.fire(ev);
@@ -11870,13 +10501,13 @@ var webglext;
     });
     pane.mouseDown.on(function(ev) {
       dragMode = webglext2.isLeftMouseDown(ev.mouseEvent) ? chooseDragMode(ev) : null;
-      if (!webglext2.hasval(dragMode)) {
+      if (!webglext2.isNotEmpty(dragMode)) {
         dragOffset_MILLIS = null;
       }
     });
     var dragPointer_PMILLIS = null;
     var updateDragPointer = function(ev) {
-      if (webglext2.hasval(dragMode)) {
+      if (webglext2.isNotEmpty(dragMode)) {
         dragPointer_PMILLIS = timeAtPointer_PMILLIS(timeAxis, ev);
       }
     };
@@ -11938,7 +10569,7 @@ var webglext;
     var coords = new Float32Array(12 + 8);
     var coordsBuffer = webglext2.newDynamicBuffer();
     return function(gl, viewport) {
-      if (webglext2.hasval(interval.cursor_PMILLIS)) {
+      if (webglext2.isNotEmpty(interval.cursor_PMILLIS)) {
         var fracSelection = timeAxis.tFrac(interval.cursor_PMILLIS);
         var fracWidth = 1 / viewport.w;
         var fracHeight = 1 / viewport.h;
@@ -11975,7 +10606,7 @@ var webglext;
     var coords = new Float32Array(12 + 8 + 48);
     var coordsBuffer = webglext2.newDynamicBuffer();
     return function(gl, viewport) {
-      if (webglext2.hasval(interval.start_PMILLIS) && webglext2.hasval(interval.end_PMILLIS)) {
+      if (webglext2.isNotEmpty(interval.start_PMILLIS) && webglext2.isNotEmpty(interval.end_PMILLIS)) {
         var fracStart = timeAxis.tFrac(interval.start_PMILLIS);
         var fracEnd = timeAxis.tFrac(interval.end_PMILLIS);
         var fracSelection = timeAxis.tFrac(interval.cursor_PMILLIS);
@@ -12080,20 +10711,10 @@ var webglext;
     var bgColor = options.bgColor;
     var rowBgColor = options.rowBgColor;
     var rowAltBgColor = options.rowAltBgColor;
-    var gridColor = options.gridColor;
-    var gridTimeZone = options.gridTimeZone;
-    var gridTickSpacing = options.gridTickSpacing;
     var groupLabelInsets = options.groupLabelInsets;
-    var rowLabelInsets = options.rowLabelInsets;
-    var rowLabelPaneWidth = options.rowLabelPaneWidth;
-    var rowSeparatorHeight = options.rowSeparatorHeight;
     var draggableEdgeWidth = options.draggableEdgeWidth;
     var snapToDistance = options.snapToDistance;
-    var textureRenderer = new webglext2.TextureRenderer();
-    var createGroupLabelTexture = webglext2.createTextTextureFactory(font);
-    var createRowLabelTexture = webglext2.createTextTextureFactory(font);
     var timelineContentPane = new webglext2.Pane(webglext2.newRowLayout());
-    var groupHeaderPanes = {};
     var groupContentPanes = {};
     var addGroup = function(groupGuid, groupIndex) {
       var group = model.group(groupGuid);
@@ -12155,30 +10776,13 @@ var webglext;
         var groupButtonHeaderUnderlay = new webglext2.Pane(webglext2.newColumnLayout());
         groupButtonHeaderUnderlay.addPane(groupButton, 0);
         groupButtonHeaderUnderlay.addPane(groupHeaderStripe, 1, { ignoreHeight: true });
-        var groupHeaderUnderlay = new webglext2.Pane(webglext2.newColumnLayout());
-        groupHeaderUnderlay.addPainter(webglext2.newBackgroundPainter(bgColor));
-        groupHeaderUnderlay.addPane(groupButtonHeaderUnderlay, 0, { width: rowLabelPaneWidth });
-        groupHeaderUnderlay.addPane(rowBackgroundPane, 1, { width: null });
-        var groupHeaderPane = groupHeaderUnderlay;
-      } else {
-        var groupHeaderUnderlay = new webglext2.Pane(webglext2.newColumnLayout());
-        groupHeaderUnderlay.addPainter(webglext2.newBackgroundPainter(bgColor));
-        groupHeaderUnderlay.addPane(groupButton, 0);
-        groupHeaderUnderlay.addPane(groupHeaderStripe, 1, { ignoreHeight: true });
-        var groupHeaderOverlay = newTimeAxisPane(args, null);
-        var groupHeaderOverlayInsets = webglext2.newInsets(0, 0, 0, rowLabelPaneWidth);
-        var groupHeaderPane = new webglext2.Pane(webglext2.newOverlayLayout());
-        groupHeaderPane.addPane(groupHeaderUnderlay, true);
-        groupHeaderPane.addPane(webglext2.newInsetPane(groupHeaderOverlay, groupHeaderOverlayInsets, null, false), false);
       }
       var groupContentPane = new webglext2.Pane(webglext2.newRowLayout());
       timelineContentPane.updateLayoutArgs(function(layoutArg) {
         var shift = webglext2.isNumber(layoutArg) && layoutArg >= 2 * groupIndex;
         return shift ? layoutArg + 2 : layoutArg;
       });
-      timelineContentPane.addPane(groupHeaderPane, 2 * groupIndex);
       timelineContentPane.addPane(groupContentPane, 2 * groupIndex + 1, { hide: group.collapsed });
-      groupHeaderPanes[groupGuid] = groupHeaderPane;
       groupContentPanes[groupGuid] = groupContentPane;
       var groupAttrsChanged = function() {
         var groupContentLayoutOpts = timelineContentPane.layoutOptions(groupContentPane);
@@ -12194,7 +10798,6 @@ var webglext;
         }
       });
       timelineContentPane.layoutOptions(groupContentPane).hide = group.hidden;
-      timelineContentPane.layoutOptions(groupHeaderPane).hide = group.hidden;
       setupRowContainerPane(args, groupContentPane, group.rowGuids, false, group.groupGuid);
       groupContentPane.dispose.on(function() {
         group.attrsChanged.off(redrawLabel);
@@ -12208,7 +10811,6 @@ var webglext;
       var nMax = Math.max(groupOldIndex, groupNewIndex);
       for (var n = nMin; n <= nMax; n++) {
         var groupGuid = root.groupGuids.valueAt(n);
-        timelineContentPane.setLayoutArg(groupHeaderPanes[groupGuid], 2 * n);
         timelineContentPane.setLayoutArg(groupContentPanes[groupGuid], 2 * n + 1);
       }
       drawable.redraw();
@@ -12216,16 +10818,12 @@ var webglext;
     root.groupGuids.valueMoved.on(moveGroup);
     var removeGroup = function(groupGuid, groupIndex) {
       var contentPane = groupContentPanes[groupGuid];
-      var headerPane = groupHeaderPanes[groupGuid];
       contentPane.dispose.fire();
-      headerPane.dispose.fire();
       timelineContentPane.removePane(contentPane);
-      timelineContentPane.removePane(headerPane);
       timelineContentPane.updateLayoutArgs(function(layoutArg) {
         var shift = webglext2.isNumber(layoutArg) && layoutArg > 2 * groupIndex + 1;
         return shift ? layoutArg - 2 : layoutArg;
       });
-      delete groupHeaderPanes[groupGuid];
       delete groupContentPanes[groupGuid];
       drawable.redraw();
     };
@@ -12234,9 +10832,8 @@ var webglext;
     var attachGroupAttrsChangedListener = function(groupGuid, groupIndex) {
       var group = model.group(groupGuid);
       var groupAttrsChangedListener = function() {
-        if (webglext2.hasval(group.hidden) && webglext2.hasval(groupContentPanes[groupGuid])) {
+        if (webglext2.isNotEmpty(group.hidden) && webglext2.isNotEmpty(groupContentPanes[groupGuid])) {
           timelineContentPane.layoutOptions(groupContentPanes[groupGuid]).hide = group.hidden;
-          timelineContentPane.layoutOptions(groupHeaderPanes[groupGuid]).hide = group.hidden;
           drawable.redraw();
         }
       };
@@ -12259,7 +10856,7 @@ var webglext;
   }
   function newRowBackgroundPainter(args, guidList, row) {
     return function(gl) {
-      var color = webglext2.hasval(row.bgColor) ? row.bgColor : guidList.indexOf(row.rowGuid) % 2 ? args.options.rowBgColor : args.options.rowAltBgColor;
+      var color = webglext2.isNotEmpty(row.bgColor) ? row.bgColor : guidList.indexOf(row.rowGuid) % 2 ? args.options.rowBgColor : args.options.rowAltBgColor;
       gl.clearColor(color.r, color.g, color.b, color.a);
       gl.clear(webglext2.GL.COLOR_BUFFER_BIT);
     };
@@ -12267,8 +10864,6 @@ var webglext;
   function newRowBackgroundPanes(args, guidList, row) {
     var rowBackgroundPane = newTimeAxisPane(args, row);
     rowBackgroundPane.addPainter(newRowBackgroundPainter(args, guidList, row));
-    var timeGridOpts = { tickSpacing: args.options.gridTickSpacing, gridColor: args.options.gridColor, referenceDate: args.options.referenceDate };
-    rowBackgroundPane.addPainter(webglext2.newTimeGridPainter(args.timeAxis, false, args.options.gridTimeZone, timeGridOpts));
     var rowInsetTop = args.options.rowSeparatorHeight / 2;
     var rowInsetBottom = args.options.rowSeparatorHeight - rowInsetTop;
     var rowInsetPane = new webglext2.Pane(webglext2.newInsetLayout(webglext2.newInsets(rowInsetTop, 0, rowInsetBottom, 0)), false);
@@ -12291,9 +10886,9 @@ var webglext;
     var addRow = function(rowGuid, rowIndex) {
       var row = model.row(rowGuid);
       var rowUi = ui.rowUi(rowGuid);
-      var rowLabelColorBg = webglext2.hasval(row.bgLabelColor) ? row.bgLabelColor : options.rowLabelBgColor;
-      var rowLabelColorFg = webglext2.hasval(row.fgLabelColor) ? row.fgLabelColor : options.rowLabelColor;
-      var rowLabelFont = webglext2.hasval(row.labelFont) ? row.labelFont : options.font;
+      var rowLabelColorBg = webglext2.isNotEmpty(row.bgLabelColor) ? row.bgLabelColor : options.rowLabelBgColor;
+      var rowLabelColorFg = webglext2.isNotEmpty(row.fgLabelColor) ? row.fgLabelColor : options.rowLabelColor;
+      var rowLabelFont = webglext2.isNotEmpty(row.labelFont) ? row.labelFont : options.font;
       var rowLabel = new webglext2.Label(row.label, rowLabelFont, rowLabelColorFg);
       var rowLabelPane = new webglext2.Pane({ updatePrefSize: webglext2.fitToLabel(rowLabel) }, false);
       rowLabelPane.addPainter(webglext2.newLabelPainter(rowLabel, 0, 0.5, 0, 0.5));
@@ -12303,9 +10898,9 @@ var webglext;
       rowHeaderPane.addPane(rowLabelPane);
       var rowAttrsChanged = function() {
         rowLabel.text = row.label;
-        rowLabel.fgColor = webglext2.hasval(row.fgLabelColor) ? row.fgLabelColor : options.rowLabelColor;
-        rowLabel.font = webglext2.hasval(row.labelFont) ? row.labelFont : options.font;
-        rowLabelBackground.color = webglext2.hasval(row.bgLabelColor) ? row.bgLabelColor : options.bgColor;
+        rowLabel.fgColor = webglext2.isNotEmpty(row.fgLabelColor) ? row.fgLabelColor : options.rowLabelColor;
+        rowLabel.font = webglext2.isNotEmpty(row.labelFont) ? row.labelFont : options.font;
+        rowLabelBackground.color = webglext2.isNotEmpty(row.bgLabelColor) ? row.bgLabelColor : options.bgColor;
         drawable.redraw();
       };
       row.attrsChanged.on(rowAttrsChanged);
@@ -12395,7 +10990,7 @@ var webglext;
     var attachAttrsChangedListener = function(rowGuid, rowIndex) {
       var row = model.row(rowGuid);
       var attrsChangedListener = function() {
-        if (webglext2.hasval(row.hidden && webglext2.hasval(rowPanes[rowGuid]))) {
+        if (webglext2.isNotEmpty(row.hidden && webglext2.isNotEmpty(rowPanes[rowGuid]))) {
           parentPane.layoutOptions(rowPanes[rowGuid]).hide = row.hidden;
           drawable.redraw();
         }
@@ -12422,7 +11017,7 @@ var webglext;
 })(webglext || (webglext = {}));
 var webglext;
 (function(webglext2) {
-  function newExampleTooltip() {
+  function newToolTip() {
     var div = document.createElement("div");
     div.classList.add("exampleTooltip");
     div.style.position = "absolute";
@@ -12445,9 +11040,9 @@ var webglext;
       }
     };
   }
-  function runTimelineExample(container) {
+  function dispTimeLines(container) {
     var canvas = document.createElement("canvas");
-    canvas.id = "exampleCanvas";
+    canvas.id = "timeLineCanvas";
     canvas.style.padding = "0";
     container.appendChild(canvas);
     var drawable = webglext2.newDrawable(canvas);
@@ -12459,29 +11054,29 @@ var webglext;
     };
     $(window).resize(updateCanvasSize);
     updateCanvasSize();
-    var timeAxis = new webglext2.TimeAxis1D(webglext2.parseTime_PMILLIS("2014-01-01T00:00:00Z"), webglext2.parseTime_PMILLIS("2014-01-01T12:00:00Z"));
+    var timeAxis = new webglext2.TimeAxis1D(0, 4e4);
     timeAxis.limitsChanged.on(drawable.redraw);
     var timelineOptions = {
+      showTopAxis: true,
       selectedIntervalMode: "single",
-      topTimeZone: "-0400",
       fgColor: webglext2.white,
-      rowLabelColor: webglext2.white,
+      rowLabelColor: webglext2.black,
       groupLabelColor: webglext2.white,
-      axisLabelColor: webglext2.white,
-      bgColor: webglext2.rgb(0.076, 0.18, 0.253),
-      rowBgColor: webglext2.rgb(0.05, 0.056, 0.12),
+      axisLabelColor: webglext2.black,
+      bgColor: webglext2.white,
+      rowBgColor: webglext2.white,
       rowAltBgColor: webglext2.rgb(0.05, 0.056, 0.12),
       selectedIntervalFillColor: webglext2.rgba(0, 0.7, 0.9, 0.187),
-      selectedIntervalBorderColor: webglext2.rgb(0, 0.3, 1),
+      selectedIntervalBorderColor: webglext2.rgb(0, 0.3, 0.6),
       allowEventMultiSelection: true,
-      gridColor: webglext2.gray(0.7),
-      rowPaneFactoryChooser: webglext2.rowPaneFactoryChooser_THIN
+      gridColor: webglext2.gray(0.3),
+      tickSpacings: 60
     };
     var model = new webglext2.TimelineModel();
     var ui = new webglext2.TimelineUi(model, { allowEventMultiSelection: true });
     var timelinePane = webglext2.newTimelinePane(drawable, timeAxis, model, timelineOptions, ui);
     var selection = ui.selection;
-    selection.selectedInterval.setInterval(webglext2.parseTime_PMILLIS("2014-01-01T08:30:00Z"), webglext2.parseTime_PMILLIS("2014-01-01T08:50:00Z"));
+    selection.selectedInterval.setInterval(0, 200);
     var contentPane = new webglext2.Pane(webglext2.newCornerLayout(webglext2.Side.LEFT, webglext2.Side.TOP));
     contentPane.addPane(timelinePane);
     drawable.setContentPane(webglext2.newInsetPane(contentPane, webglext2.newInsets(12, 10, 2), timelineOptions.bgColor));
@@ -12494,7 +11089,35 @@ var webglext;
         ui.annotationStyles.add(new webglext2.TimelineAnnotationStyleUi(s));
       });
     });
-    var timeStep = webglext2.hoursToMillis(1);
+    var addTrack = document.getElementById("selected-time-add");
+    addTrack.onclick = function() {
+    };
+    var addPlay = document.getElementById("selected-time-autoplay");
+    var playState = false;
+    var myVar;
+    addPlay.onclick = function() {
+      if (!playState) {
+        myVar = setInterval(playTimeLine, 100);
+        playState = true;
+        addPlay.className = "fa fa-pause";
+      } else {
+        clearInterval(myVar);
+        addPlay.className = "fa fa-play";
+        playState = false;
+      }
+    };
+    function playTimeLine() {
+      var timeStep2 = 100;
+      var selectedInterval2 = selection.selectedInterval;
+      selectedInterval2.pan(timeStep2);
+      if (selectedInterval2.end_PMILLIS > timeAxis.tMax_PMILLIS) {
+        var tSize_MILLIS = timeAxis.tSize_MILLIS;
+        timeAxis.tMax_PMILLIS = selectedInterval2.end_PMILLIS;
+        timeAxis.tMin_PMILLIS = timeAxis.tMax_PMILLIS - tSize_MILLIS;
+      }
+      drawable.redraw();
+    }
+    var timeStep = webglext2.secondsToMillis(1);
     var selectedInterval = selection.selectedInterval;
     var a = document.getElementById("selected-time-step-backward");
     a.onclick = function() {
@@ -12516,14 +11139,6 @@ var webglext;
       }
       drawable.redraw();
     };
-    var a = document.getElementById("maximize-button");
-    a.onclick = function() {
-      if (model.root.maximizedRowGuids.hasValue("metsci.timelineExample.row03a")) {
-        model.root.maximizedRowGuids.removeValue("metsci.timelineExample.row03a");
-      } else {
-        model.root.maximizedRowGuids.add("metsci.timelineExample.row03a");
-      }
-    };
     ui.rowUis.valueAdded.on(function(rowUi) {
       rowUi.panes.valueAdded.on(function(pane, index) {
         var id = rowUi.panes.idAt(index);
@@ -12542,20 +11157,7 @@ var webglext;
         }
       });
     });
-    var customRowHeight = 135;
-    var a = document.getElementById("flag-button");
-    a.onclick = function() {
-      customRowHeight = customRowHeight + 10;
-      if (customRowHeight > 200)
-        customRowHeight = 135;
-      model.row("metsci.timelineExample.row03a").rowHeight = customRowHeight;
-      model.rows.forEach(function(row) {
-        row.eventGuids.removeValue("metsci.timelineExample.event01");
-      });
-      model.events.removeId("metsci.timelineExample.event01");
-      drawable.redraw();
-    };
-    var tooltip = newExampleTooltip();
+    var tooltip = newToolTip();
     var iTooltipOffset = 12;
     var jTooltipOffset = -12;
     selection.hoveredEvent.changed.on(function() {
@@ -12582,35 +11184,8 @@ var webglext;
         tooltip.hide();
       }
     });
-    var hoveredFragment;
-    var updateTimeseriesTooltip = function() {
-      if (webglext2.hasval(hoveredFragment)) {
-        hoveredFragment.dataChanged.off(updateTimeseriesTooltip);
-      }
-      hoveredFragment = selection.hoveredTimeseries.fragment;
-      if (webglext2.hasval(hoveredFragment)) {
-        hoveredFragment.dataChanged.on(updateTimeseriesTooltip);
-        var iMouse = selection.mousePos.x;
-        var jMouse = selection.mousePos.y;
-        if (webglext2.isNumber(iMouse) && webglext2.isNumber(jMouse)) {
-          var html = "" + selection.hoveredTimeseries.data.toFixed(2);
-          tooltip.show(html, iMouse + iTooltipOffset, jMouse + jTooltipOffset);
-        } else {
-          tooltip.hide();
-        }
-      } else {
-        tooltip.hide();
-      }
-    };
-    selection.hoveredTimeseries.changed.on(updateTimeseriesTooltip);
     selection.hoveredAnnotation.changed.on(function() {
-      if (webglext2.hasval(selection.hoveredAnnotation.value)) {
-      }
-    });
-    selection.hoveredTimeseries.changed.on(function() {
-      if (webglext2.hasval(selection.hoveredTimeseries.fragment)) {
-        var dataValue = selection.hoveredTimeseries.data;
-        var time_PMILLIS = selection.hoveredTimeseries.times_PMILLIS;
+      if (webglext2.isNotEmpty(selection.hoveredAnnotation.value)) {
       }
     });
     selection.mousePos.changed.on(function() {
@@ -12636,12 +11211,7 @@ var webglext;
     });
     $.getJSON("timelineData.json", function(newTimeline) {
       model.merge(newTimeline, webglext2.timelineMergeNewBeforeOld);
-      var pane = ui.rowUi("metsci.timelineExample.row03a").getPane("y-axis");
-      var clickListener = function(ev) {
-        console.log("y-axis click: " + ev.clickCount);
-      };
-      pane.mouseDown.on(clickListener);
     });
   }
-  webglext2.runTimelineExample = runTimelineExample;
+  webglext2.dispTimeLines = dispTimeLines;
 })(webglext || (webglext = {}));

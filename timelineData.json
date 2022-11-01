@@ -1,28 +1,28 @@
 {
     "annotations": [ {
-        "annotationGuid": "metsci.timelineExample.annotation01",
+        "annotationGuid": "videoedit.timeline.annotation01",
         "time_ISO8601": "2014-01-01T01:00:00Z",
         "y": 5,
         "label": "Warning Level",
-        "styleGuid": "metsci.timelineExample.annotationStyle01"
+        "styleGuid": "videoedit.timeline.annotationStyle01"
     }, {
-        "annotationGuid": "metsci.timelineExample.annotation02",
+        "annotationGuid": "videoedit.timeline.annotation02",
         "y": 0,
         "label": "Baseline",
-        "styleGuid": "metsci.timelineExample.annotationStyle02"
+        "styleGuid": "videoedit.timeline.annotationStyle02"
     }, {
-        "annotationGuid": "metsci.timelineExample.annotation03",
+        "annotationGuid": "videoedit.timeline.annotation03",
         "time_ISO8601": "2013-12-31T21:00:00.000Z",
-        "styleGuid": "metsci.timelineExample.annotationStyle03"
+        "styleGuid": "videoedit.timeline.annotationStyle03"
     } ],
     "events": [  {
         "eventGuid": "track_ids_01",
-        "start_time": "00:00:00Z",
-        "end_time": "00:00:20Z",
+        "start_time": 0,
+        "end_time": 20000,
         "label": "video track #1",
         "userEditable": true,
-        "fgColor": "#7BFAAA",
-        "bgColor": "#FFB403",
+        "fgColor": "RGB(123, 250, 170",
+        "bgColor": "RGB(123, 250, 170)",
         "bgSecondaryColor": "white",
         "borderColor": "red",
         "order": 3,
@@ -35,41 +35,44 @@
         "fillPattern": "stripe"
     }, {
         "eventGuid": "track_ids_02",
-        "start_time": "00:00:20Z",
-        "end_time": "00:05:20Z",
+        "start_time": 0,
+        "end_time": 10000,
         "label": "Audio Track #2",
         "userEditable": true,
         "fgColor": "white",
         "bgColor": "rgba(165,227,236,1.0)"
     }, {
         "eventGuid": "track_ids_03",
-        "start_time": "00:00:00Z",
-        "end_time": "00:01:20Z",
+        "start_time": 0,
+        "end_time": 8000,
         "label": "Audio Track #3",
-        "userEditable": true,
+        "userEditable": true,   
         "fgColor": "white",
         "bgColor": "rgba(255,157,234,1.0)"
     }],
 
 
     "rows": [ {
-        "rowGuid": "metsci.timelineExample.row01a",
+        "rowGuid": "videoedit.timeline.row01a",
         "label": "Video Track #1A",
+        "labelIcon": "images/video.png",
         "bgColor" : "#DAFDE6",
         "eventGuids": [
             "track_ids_01"
         ]
     }, {
-        "rowGuid": "metsci.timelineExample.row01b",
+        "rowGuid": "videoedit.timeline.row01b",
         "label": "Audio Track #1B",
         "bgColor" : "#E3F7F9",
+        "labelIcon": "images/image-solid.png",
         "eventGuids": [
             "track_ids_02"
         ]
     }, {
-        "rowGuid": "metsci.timelineExample.row01c",
+        "rowGuid": "videoedit.timeline.row01c",
         "label": "Audio Track #1C",
         "bgColor" : "#FFE2F9",
+        "labelIcon": "images/music-solid.png",
         "eventGuids": [
             "track_ids_03"
         ]
@@ -77,19 +80,19 @@
 
 
     "groups": [ {
-        "groupGuid": "metsci.timelineExample.group01",
+        "groupGuid": "videoedit.timeline.group01",
         "label": "Group #1",
         "rowGuids": [
-            "metsci.timelineExample.row01a",
-            "metsci.timelineExample.row01b",
-            "metsci.timelineExample.row01c"
+            "videoedit.timeline.row01a",
+            "videoedit.timeline.row01b",
+            "videoedit.timeline.row01c"
         ]
     }],
 
 
     "root": {
         "groupGuids": [
-            "metsci.timelineExample.group01"
+            "videoedit.timeline.group01"
         ]
     }
 }

@@ -4070,11 +4070,14 @@ var webglext;
 var webglext;
 (function(webglext2) {
   var Label = function() {
-    function Label2(text, font, fgColor, bgColor) {
+    function Label2(text, url, font, fgColor, bgColor) {
+      this._icontexture = {};
       this._font = font;
       this._text = text;
+      this._url = url;
       this._fgColor = fgColor;
       this._bgColor = bgColor;
+      this._icontexture = {};
     }
     Object.defineProperty(Label2.prototype, "font", {
       get: function() {
@@ -4137,6 +4140,22 @@ var webglext;
       enumerable: false,
       configurable: true
     });
+    Object.defineProperty(Label2.prototype, "url", {
+      get: function() {
+        return this._url;
+      },
+      set: function(url) {
+        if (this._url !== url) {
+          this._url = url;
+          if (this._texture) {
+            this._texture.dispose();
+            this._texture = null;
+          }
+        }
+      },
+      enumerable: false,
+      configurable: true
+    });
     Object.defineProperty(Label2.prototype, "text", {
       get: function() {
         return this._text;
@@ -4153,6 +4172,23 @@ var webglext;
       enumerable: false,
       configurable: true
     });
+    Label2.prototype.loadImage = function(url, onLoaded) {
+      if (!webglext2.isNotEmpty(this._icontexture[url])) {
+        var imageCache = this._icontexture;
+        var image = new Image();
+        image.onload = function() {
+          var w = image.naturalWidth;
+          var h = image.naturalHeight;
+          imageCache[url] = new webglext2.Texture2D(w, h, webglext2.GL.LINEAR, webglext2.GL.LINEAR, function(g) {
+            g.drawImage(image, 0, 0);
+          });
+          if (onLoaded)
+            onLoaded();
+        };
+        image.src = url;
+      }
+      return this._icontexture[url];
+    };
     Object.defineProperty(Label2.prototype, "texture", {
       get: function() {
         if (!this._textureFactory) {
@@ -4162,6 +4198,29 @@ var webglext;
           this._texture = this._fgColor && this._text ? this._textureFactory(this._fgColor, this._text) : null;
         }
         return this._texture;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    Object.defineProperty(Label2.prototype, "icontexture", {
+      get: function() {
+        var imageCache = this._icontexture;
+        var url = this._url;
+        if (this._url) {
+          if (imageCache !== null) {
+            imageCache[this._url] = null;
+            var image = new Image();
+            image.onload = function() {
+              var w = image.naturalWidth;
+              var h = image.naturalHeight;
+              imageCache[url] = new webglext2.Texture2D(w, h, webglext2.GL.LINEAR, webglext2.GL.LINEAR, function(g) {
+                g.drawImage(image, 0, 0);
+              });
+            };
+            image.src = this._url;
+          }
+        }
+        return imageCache[url];
       },
       enumerable: false,
       configurable: true
@@ -4177,17 +4236,35 @@ var webglext;
     };
   }
   webglext2.fitToLabel = fitToLabel;
-  function newLabelPainter(label, xFrac, yFrac, xAnchor, yAnchor, rotation_CCWRAD) {
+  function newLabelPainter(label, drawable, xFrac, yFrac, xAnchor, yAnchor, rotation_CCWRAD) {
     var textureRenderer = new webglext2.TextureRenderer();
     return function(gl, viewport) {
       if (webglext2.isNotEmpty(label.bgColor)) {
         gl.clearColor(label.bgColor.r, label.bgColor.g, label.bgColor.b, label.bgColor.a);
         gl.clear(webglext2.GL.COLOR_BUFFER_BIT);
       }
-      var texture = label.texture;
-      if (texture) {
+      if (!label.url) {
+        var texture = label.texture;
+        if (texture) {
+          textureRenderer.begin(gl, viewport);
+          textureRenderer.draw(gl, texture, xFrac, yFrac, { xAnchor, yAnchor: texture.yAnchor(yAnchor), rotation_CCWRAD });
+          textureRenderer.end(gl);
+        }
+      } else {
         textureRenderer.begin(gl, viewport);
-        textureRenderer.draw(gl, texture, xFrac, yFrac, { xAnchor, yAnchor: texture.yAnchor(yAnchor), rotation_CCWRAD });
+        var icontexture = label.loadImage(label.url, function() {
+          drawable.redraw();
+        });
+        if (icontexture) {
+          var width = Math.min(viewport.w, viewport.h) - 20;
+          textureRenderer.draw(gl, icontexture, xFrac, yFrac, {
+            xAnchor,
+            yAnchor,
+            rotation_CCWRAD,
+            width,
+            height: width
+          });
+        }
         textureRenderer.end(gl);
       }
     };
@@ -5720,7 +5797,7 @@ var webglext;
 })(webglext || (webglext = {}));
 var webglext;
 (function(webglext2) {
-  function newTimeAxisPainter(timeAxis, labelSide, displayTimeZone, tickTimeZone, options) {
+  function newTimeAxisPainter(timeAxis, labelSide, options) {
     var tickSpacings = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSpacings) ? options.tickSpacings : 60;
     var font = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.font) ? options.font : "11px sans-serif";
     var textColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.textColor) ? options.textColor : webglext2.black;
@@ -5746,7 +5823,7 @@ var webglext;
       var sizePixels = isVerticalAxis ? viewport.h : viewport.w;
       if (sizePixels === 0)
         return;
-      var tickTimes_PMILLIS = getTickTimes_PMILLIS(timeAxis, sizePixels, tickSpacings, tickTimeZone, referenceDate_PMILLIS);
+      var tickTimes_PMILLIS = getTickTimes_PMILLIS(timeAxis, sizePixels, tickSpacings, referenceDate_PMILLIS);
       var tickInterval_MILLIS = getTickInterval_MILLIS(tickTimes_PMILLIS);
       var tickCount = tickTimes_PMILLIS.length;
       marksProgram.use(gl);
@@ -5771,7 +5848,7 @@ var webglext;
       marksProgram.endUse(gl);
       gl.blendFuncSeparate(webglext2.GL.SRC_ALPHA, webglext2.GL.ONE_MINUS_SRC_ALPHA, webglext2.GL.ONE, webglext2.GL.ONE_MINUS_SRC_ALPHA);
       gl.enable(webglext2.GL.BLEND);
-      var ticks = getTickDisplayData(tickInterval_MILLIS, referenceDate_PMILLIS, displayTimeZone, isFuturePositive);
+      var ticks = getTickDisplayData(tickInterval_MILLIS, referenceDate_PMILLIS, isFuturePositive);
       textTextures.resetTouches();
       textureRenderer.begin(gl, viewport);
       for (var n = 0; n < tickCount; n++) {
@@ -5811,7 +5888,7 @@ var webglext;
     };
   }
   webglext2.newTimeAxisPainter = newTimeAxisPainter;
-  function getTickDisplayData(tickInterval_MILLIS, referenceDate_PMILLIS, displayTimeZone, isFuturePositive) {
+  function getTickDisplayData(tickInterval_MILLIS, referenceDate_PMILLIS, isFuturePositive) {
     return getTickDisplayDataRelative(tickInterval_MILLIS, 0, isFuturePositive);
   }
   function getTickDisplayDataRelative(tickInterval_MILLIS, referenceDate_PMILLIS, isFuturePositive) {
@@ -5903,15 +5980,15 @@ var webglext;
     }
     return { prefixFormat, tickFormat, timeStructFactory };
   }
-  function getTickDisplayDataAbsolute(tickInterval_MILLIS, displayTimeZone) {
+  function getTickDisplayDataAbsolute(tickInterval_MILLIS) {
     var defaultTickFormat = function(format) {
       return function(tickTime_PMILLIS) {
-        return moment(tickTime_PMILLIS).zone(displayTimeZone).format(format);
+        return moment(tickTime_PMILLIS).format(format);
       };
     };
     var defaultPrefixFormat = function(format) {
       return function(timeStruct) {
-        return moment(timeStruct.textCenter_PMILLIS).zone(displayTimeZone).format(format);
+        return moment(timeStruct.textCenter_PMILLIS).format(format);
       };
     };
     if (tickInterval_MILLIS > webglext2.hoursToMillis(1)) {
@@ -5982,7 +6059,7 @@ var webglext;
     };
     return HourStruct2;
   }(TimeStruct);
-  function getTickTimes_PMILLIS(timeAxis, sizePixels, tickSpacings, timeZone, referenceDate_PMILLIS) {
+  function getTickTimes_PMILLIS(timeAxis, sizePixels, tickSpacings, referenceDate_PMILLIS) {
     var dMin_PMILLIS = timeAxis.tMin_PMILLIS;
     var dMax_PMILLIS = timeAxis.tMax_PMILLIS;
     var approxTickInterval_MILLIS = tickSpacings * (dMax_PMILLIS - dMin_PMILLIS) / sizePixels;
@@ -6257,10 +6334,10 @@ var webglext;
       configurable: true
     });
     TimelineTrackModel2.prototype.setAttrs = function(event) {
-      this._startLimit_PMILLIS = webglext2.isNotEmpty(event.startLimit_ISO8601) ? webglext2.parseTime_PMILLIS(event.startLimit_ISO8601) : null;
-      this._endLimit_PMILLIS = webglext2.isNotEmpty(event.endLimit_ISO8601) ? webglext2.parseTime_PMILLIS(event.endLimit_ISO8601) : null;
-      this._start_PMILLIS = webglext2.parseTime_PMILLIS(event.start_time);
-      this._end_PMILLIS = webglext2.parseTime_PMILLIS(event.end_time);
+      this._startLimit_PMILLIS = event.startLimit_ISO8601;
+      this._endLimit_PMILLIS = event.endLimit_ISO8601;
+      this._start_PMILLIS = event.start_time;
+      this._end_PMILLIS = event.end_time;
       this._label = event.label;
       this._labelIcon = event.labelIcon;
       this._userEditable = webglext2.isNotEmpty(event.userEditable) ? event.userEditable : false;
@@ -6632,10 +6709,10 @@ var webglext;
     TimelineTrackModel2.prototype.snapshot = function() {
       return {
         eventGuid: this._eventGuid,
-        startLimit_ISO8601: webglext2.isNotEmpty(this._startLimit_PMILLIS) ? webglext2.formatTime_ISO8601(this._startLimit_PMILLIS) : null,
-        endLimit_ISO8601: webglext2.isNotEmpty(this._endLimit_PMILLIS) ? webglext2.formatTime_ISO8601(this._endLimit_PMILLIS) : null,
-        start_time: webglext2.formatTime_ISO8601(this._start_PMILLIS),
-        end_time: webglext2.formatTime_ISO8601(this._end_PMILLIS),
+        startLimit_ISO8601: this._startLimit_PMILLIS,
+        endLimit_ISO8601: this._endLimit_PMILLIS,
+        start_time: this._start_PMILLIS,
+        end_time: this._end_PMILLIS,
         label: this._label,
         labelIcon: this._labelIcon,
         userEditable: this._userEditable,
@@ -6689,6 +6766,7 @@ var webglext;
     });
     TimelineRowModel2.prototype.setAttrs = function(row) {
       this._label = row.label;
+      this._labelIcon = row.labelIcon;
       this._uiHint = row.uiHint;
       this._hidden = row.hidden;
       this._rowHeight = row.rowHeight;
@@ -6750,6 +6828,19 @@ var webglext;
       set: function(label) {
         if (label !== this._label) {
           this._label = label;
+          this._attrsChanged.fire();
+        }
+      },
+      enumerable: false,
+      configurable: true
+    });
+    Object.defineProperty(TimelineRowModel2.prototype, "labelIcon", {
+      get: function() {
+        return this._labelIcon;
+      },
+      set: function(labelIcon) {
+        if (labelIcon !== this._labelIcon) {
+          this._labelIcon = labelIcon;
           this._attrsChanged.fire();
         }
       },
@@ -6846,6 +6937,7 @@ var webglext;
       return {
         rowGuid: this._rowGuid,
         label: this._label,
+        labelIcon: this._labelIcon,
         rowHeight: this._rowHeight,
         hidden: this._hidden,
         uiHint: this._uiHint,
@@ -10166,12 +10258,9 @@ var webglext;
     var selectedIntervalBorderColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.selectedIntervalBorderColor) ? options.selectedIntervalBorderColor : webglext2.rgb(0, 0.2, 1);
     var showTopAxis = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.showTopAxis) ? options.showTopAxis : true;
     var showBottomAxis = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.showBottomAxis) ? options.showBottomAxis : true;
-    var topTimeZone = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.topTimeZone) ? options.topTimeZone : "+0000";
-    var bottomTimeZone = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.bottomTimeZone) ? options.bottomTimeZone : "+0000";
     var tickSpacings = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSpacings) ? options.tickSpacings : 60;
     var axisLabelAlign = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.axisLabelAlign) ? options.axisLabelAlign : 0.5;
     showTopAxis = true;
-    topTimeZone = "2123123";
     var groupLabelInsets = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.groupLabelInsets) ? options.groupLabelInsets : webglext2.newInsets(6, 10);
     var rowLabelInsets = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelInsets) ? options.rowLabelInsets : webglext2.newInsets(0, 35);
     var rowLabelPaneWidth = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelPaneWidth) ? options.rowLabelPaneWidth : 140;
@@ -10211,7 +10300,6 @@ var webglext;
     };
     selection.hoveredY.changed.on(redrawCursor);
     selection.hoveredTime_PMILLIS.changed.on(redrawCursor);
-    var tickTimeZone = showTopAxis ? topTimeZone : bottomTimeZone;
     var contentPaneOpts = {
       selectedIntervalMode,
       rowPaneFactoryChooser,
@@ -10226,7 +10314,6 @@ var webglext;
       rowAltBgColor,
       gridColor,
       gridtickSpacings: tickSpacings,
-      gridTimeZone: tickTimeZone,
       referenceDate: options.referenceDate,
       groupLabelInsets,
       rowLabelInsets,
@@ -10237,45 +10324,13 @@ var webglext;
       mouseWheelListener
     };
     var contentPaneArgs;
-    if (showScrollbar) {
-      var scrollLayout = webglext2.newVerticalScrollLayout();
-      var scrollable = new webglext2.Pane(scrollLayout, false);
-      ui.addPane("scroll-content-pane", scrollable);
-      contentPaneArgs = { drawable, scrollLayout, timeAxis, model, ui, options: contentPaneOpts };
-      var scrollContentPane = newTimelineContentPane(contentPaneArgs);
-      ui.addPane("content-pane", scrollContentPane);
-      scrollable.addPane(scrollContentPane, 0);
-      var scrollbar = webglext2.newVerticalScrollbar(scrollLayout, drawable, scrollbarOptions);
-      ui.addPane("scrollbar", scrollbar);
-      var contentPane = new webglext2.Pane(webglext2.newColumnLayout(false), false);
-      ui.addPane("scroll-outer-pane", contentPane);
-      contentPane.addPane(scrollbar, 0, { width: scrollbarWidth, ignoreHeight: true });
-      contentPane.addPane(scrollable, 1);
-    } else {
-      contentPaneArgs = { drawable, scrollLayout: null, timeAxis, model, ui, options: contentPaneOpts };
-      var contentPane = newTimelineContentPane(contentPaneArgs);
-      ui.addPane("content-pane", contentPane);
-    }
+    contentPaneArgs = { drawable, scrollLayout: null, timeAxis, model, ui, options: contentPaneOpts };
+    var contentPane = newTimelineContentPane(contentPaneArgs);
+    ui.addPane("content-pane", contentPane);
     var timelineCardPane = new webglext2.Pane(webglext2.newCardLayout());
-    ui.addPane("switch-content-pane", timelineCardPane);
-    var maximizedContentPane = new webglext2.Pane(webglext2.newRowLayout());
-    ui.addPane("maximize-content-pane", maximizedContentPane);
-    var insetMaximizedContentPane = webglext2.newInsetPane(maximizedContentPane, webglext2.newInsets(0, scrollbarWidth, 0, 0));
-    ui.addPane("inset-maximize-content-pane", insetMaximizedContentPane);
-    var contentActive = model.root.maximizedRowGuids.isEmpty;
-    timelineCardPane.addPane(insetMaximizedContentPane, !contentActive);
-    timelineCardPane.addPane(contentPane, contentActive);
-    setupRowContainerPane(contentPaneArgs, maximizedContentPane, model.root.maximizedRowGuids, true, "maximized");
-    var updateMaximizedRows = function(rowGuid, rowIndex) {
-      var contentActive2 = model.root.maximizedRowGuids.isEmpty;
-      timelineCardPane.setLayoutArg(insetMaximizedContentPane, !contentActive2);
-      timelineCardPane.setLayoutArg(contentPane, contentActive2);
-      drawable.redraw();
-    };
-    model.root.maximizedRowGuids.valueAdded.on(updateMaximizedRows);
-    model.root.maximizedRowGuids.valueRemoved.on(updateMaximizedRows);
-    var underlayPane = new webglext2.Pane(webglext2.newRowLayout());
-    ui.addPane("underlay-pane", underlayPane);
+    timelineCardPane.addPane(contentPane, true);
+    var capsulelayPane = new webglext2.Pane(webglext2.newRowLayout());
+    ui.addPane("main-pane", capsulelayPane);
     var axisInsets = webglext2.newInsets(0, scrollbarWidth, 0, rowLabelPaneWidth);
     var axisOpts = {
       tickSpacings,
@@ -10289,62 +10344,35 @@ var webglext;
     if (showTopAxis) {
       var topAxisPane = newTimeAxisPane(contentPaneArgs, null);
       ui.addPane("top-axis-pane", topAxisPane);
-      topAxisPane.addPainter(webglext2.newTimeAxisPainter(timeAxis, webglext2.Side.TOP, topTimeZone, tickTimeZone, axisOpts));
-      underlayPane.addPane(webglext2.newInsetPane(topAxisPane, axisInsets), 0, { height: axisPaneHeight, width: null });
+      topAxisPane.addPainter(webglext2.newTimeAxisPainter(timeAxis, webglext2.Side.TOP, axisOpts));
+      capsulelayPane.addPane(webglext2.newInsetPane(topAxisPane, axisInsets), 0, { height: axisPaneHeight, width: null });
     }
-    var topPinnedPane = new webglext2.Pane(webglext2.newRowLayout());
-    ui.addPane("top-pinned-pane", topPinnedPane);
-    var insetTopPinnedPane = webglext2.newInsetPane(topPinnedPane, webglext2.newInsets(0, scrollbarWidth, 0, 0));
-    ui.addPane("inset-top-pinned-pane", insetTopPinnedPane);
-    setupRowContainerPane(contentPaneArgs, topPinnedPane, model.root.topPinnedRowGuids, false, "toppinned");
-    underlayPane.addPane(insetTopPinnedPane, 1);
-    underlayPane.addPane(timelineCardPane, 2, { height: "pref-max", width: null });
-    var bottomPinnedPane = new webglext2.Pane(webglext2.newRowLayout());
-    ui.addPane("bottom-pinned-pane", bottomPinnedPane);
-    var insetBottomPinnedPane = webglext2.newInsetPane(bottomPinnedPane, webglext2.newInsets(0, scrollbarWidth, 0, 0));
-    ui.addPane("inset-bottom-pinned-pane", insetBottomPinnedPane);
-    setupRowContainerPane(contentPaneArgs, bottomPinnedPane, model.root.bottomPinnedRowGuids, false, "bottompinned");
-    underlayPane.addPane(insetBottomPinnedPane, 3);
+    capsulelayPane.addPane(timelineCardPane, 1, { height: "pref-max", width: null });
     if (showBottomAxis) {
       var bottomAxisPane = newTimeAxisPane(contentPaneArgs, null);
       ui.addPane("bottom-axis-pane", bottomAxisPane);
-      bottomAxisPane.addPainter(webglext2.newTimeAxisPainter(timeAxis, webglext2.Side.BOTTOM, bottomTimeZone, tickTimeZone, axisOpts));
-      underlayPane.addPane(webglext2.newInsetPane(bottomAxisPane, axisInsets), 4, { height: axisPaneHeight, width: null });
+      bottomAxisPane.addPainter(webglext2.newTimeAxisPainter(timeAxis, webglext2.Side.BOTTOM, axisOpts));
+      capsulelayPane.addPane(webglext2.newInsetPane(bottomAxisPane, axisInsets), 2, { height: axisPaneHeight, width: null });
     }
     var updateMillisPerPx = function() {
-      var w = underlayPane.viewport.w - axisInsets.left - axisInsets.right;
+      var w = capsulelayPane.viewport.w - axisInsets.left - axisInsets.right;
       ui.millisPerPx.value = timeAxis.tSize_MILLIS / w;
     };
-    underlayPane.viewportChanged.on(updateMillisPerPx);
+    capsulelayPane.viewportChanged.on(updateMillisPerPx);
     timeAxis.limitsChanged.on(updateMillisPerPx);
     var timelinePane = new TimelinePane(webglext2.newOverlayLayout(), model, ui);
     ui.addPane("timeline-pane", timelinePane);
     timelinePane.addPainter(webglext2.newBackgroundPainter(bgColor));
-    timelinePane.addPane(underlayPane, true);
-    if (selectedIntervalMode === "single" || selectedIntervalMode === "single-unmodifiable") {
-      var overlayPane = new webglext2.Pane(null, false, webglext2.alwaysTrue);
-      ui.addPane("overlay-pane", overlayPane);
-      overlayPane.addPainter(newTimelineSingleSelectionPainter(timeAxis, selection.selectedInterval, selectedIntervalBorderColor, selectedIntervalFillColor));
-      timelinePane.addPane(webglext2.newInsetPane(overlayPane, axisInsets, null, false));
-    } else if (selectedIntervalMode === "range" || selectedIntervalMode === "range-unmodifiable") {
-      var overlayPane = new webglext2.Pane(null, false, webglext2.alwaysTrue);
-      ui.addPane("overlay-pane", overlayPane);
-      overlayPane.addPainter(newTimelineRangeSelectionPainter(timeAxis, selection.selectedInterval, selectedIntervalBorderColor, selectedIntervalFillColor));
-      timelinePane.addPane(webglext2.newInsetPane(overlayPane, axisInsets, null, false));
-    }
+    timelinePane.addPane(capsulelayPane, true);
+    var overlayPane = new webglext2.Pane(null, false, webglext2.alwaysTrue);
+    ui.addPane("overlay-pane", overlayPane);
+    overlayPane.addPainter(newTimelineSingleSelectionPainter(timeAxis, selection.selectedInterval, selectedIntervalBorderColor, selectedIntervalFillColor));
+    timelinePane.addPane(webglext2.newInsetPane(overlayPane, axisInsets, null, false));
     if (centerSelectedIntervalOnDoubleClick) {
       var doubleClick = function(ev) {
-        if (selectedIntervalMode === "single") {
-          if (ev.clickCount > 1) {
-            var time_PMILLIS = timeAtPointer_PMILLIS(timeAxis, ev);
-            selection.selectedInterval.setInterval(time_PMILLIS, time_PMILLIS);
-          }
-        } else if (selectedIntervalMode === "range") {
-          if (ev.clickCount > 1) {
-            var time_PMILLIS = timeAtPointer_PMILLIS(timeAxis, ev);
-            var offset_PMILLIS = selection.selectedInterval.start_PMILLIS + 0.5 * selection.selectedInterval.duration_MILLIS;
-            selection.selectedInterval.pan(time_PMILLIS - offset_PMILLIS);
-          }
+        if (ev.clickCount > 1) {
+          var time_PMILLIS = timeAtPointer_PMILLIS(timeAxis, ev);
+          selection.selectedInterval.setInterval(time_PMILLIS, time_PMILLIS);
         }
       };
       ui.input.mouseDown.on(doubleClick);
@@ -10358,10 +10386,8 @@ var webglext;
       selection.hoveredTime_PMILLIS.changed.off(redrawCursor);
       selection.selectedEvents.valueAdded.off(redraw);
       selection.selectedEvents.valueRemoved.off(redraw);
-      underlayPane.viewportChanged.off(updateMillisPerPx);
+      capsulelayPane.viewportChanged.off(updateMillisPerPx);
       timeAxis.limitsChanged.off(updateMillisPerPx);
-      model.root.maximizedRowGuids.valueAdded.off(updateMaximizedRows);
-      model.root.maximizedRowGuids.valueRemoved.off(updateMaximizedRows);
     });
     return timelinePane;
   }
@@ -10718,65 +10744,6 @@ var webglext;
     var groupContentPanes = {};
     var addGroup = function(groupGuid, groupIndex) {
       var group = model.group(groupGuid);
-      var groupLabel = new webglext2.Label(group.label, font, groupLabelColor);
-      var groupLabelPane = new webglext2.Pane({ updatePrefSize: webglext2.fitToLabel(groupLabel) }, false);
-      groupLabelPane.addPainter(webglext2.newLabelPainter(groupLabel, 0, 1, 0, 1));
-      var groupArrowPane = new webglext2.Pane({ updatePrefSize: function(parentPrefSize) {
-        parentPrefSize.w = 16;
-        parentPrefSize.h = 0;
-      } }, false);
-      groupArrowPane.addPainter(newGroupCollapseExpandArrowPainter(group));
-      var groupPane = new webglext2.Pane(webglext2.newColumnLayout(), false);
-      groupPane.addPane(groupArrowPane, 0);
-      groupPane.addPane(groupLabelPane, 1);
-      var groupButton = webglext2.newInsetPane(groupPane, groupLabelInsets, bgColor);
-      var redrawLabel = function() {
-        groupLabel.text = group.label;
-        drawable.redraw();
-      };
-      group.attrsChanged.on(redrawLabel);
-      var groupHeaderStripe = new webglext2.Pane(webglext2.newRowLayout());
-      groupHeaderStripe.addPane(new webglext2.Pane(null), 0, { height: null });
-      groupHeaderStripe.addPane(webglext2.newSolidPane(groupLabelColor), 1, { height: 1 });
-      groupHeaderStripe.addPane(new webglext2.Pane(null), 2, { height: null });
-      var rollupRow = model.row(group.rollupGuid);
-      if (rollupRow) {
-        var rowBackgroundPanes = newRowBackgroundPanes(args, group.rowGuids, rollupRow);
-        var rowBackgroundPane = rowBackgroundPanes.rowBackgroundPane;
-        var rowInsetPane = rowBackgroundPanes.rowInsetPane;
-        var rollupUi = ui.rowUi(rollupRow.rowGuid);
-        rollupUi.addPane("background", rowBackgroundPane);
-        rollupUi.addPane("inset", rowInsetPane);
-        var rollupDataAxis = rollupRow.dataAxis;
-        var rollupContentPane = null;
-        var rollupPaneFactory = null;
-        var rollupContentOptions = { timelineFont: font, timelineFgColor: fgColor, draggableEdgeWidth, snapToDistance, isMaximized: false, mouseWheelListener: args.options.mouseWheelListener };
-        var refreshRollupContentPane = function() {
-          var newRollupPaneFactory = rollupUi.paneFactory || rowPaneFactoryChooser(rollupRow);
-          if (newRollupPaneFactory !== rollupPaneFactory) {
-            if (rollupContentPane) {
-              rollupContentPane.dispose.fire();
-              rowInsetPane.removePane(rollupContentPane);
-            }
-            rollupPaneFactory = newRollupPaneFactory;
-            rollupContentPane = rollupPaneFactory && rollupPaneFactory(drawable, timeAxis, rollupDataAxis, model, rollupRow, ui, rollupContentOptions);
-            if (rollupContentPane) {
-              rowInsetPane.addPane(rollupContentPane);
-            }
-            drawable.redraw();
-          }
-        };
-        rollupUi.paneFactoryChanged.on(refreshRollupContentPane);
-        rollupRow.attrsChanged.on(refreshRollupContentPane);
-        rollupRow.eventGuids.valueAdded.on(refreshRollupContentPane);
-        rollupRow.eventGuids.valueRemoved.on(refreshRollupContentPane);
-        rollupRow.timeseriesGuids.valueAdded.on(refreshRollupContentPane);
-        rollupRow.timeseriesGuids.valueRemoved.on(refreshRollupContentPane);
-        refreshRollupContentPane();
-        var groupButtonHeaderUnderlay = new webglext2.Pane(webglext2.newColumnLayout());
-        groupButtonHeaderUnderlay.addPane(groupButton, 0);
-        groupButtonHeaderUnderlay.addPane(groupHeaderStripe, 1, { ignoreHeight: true });
-      }
       var groupContentPane = new webglext2.Pane(webglext2.newRowLayout());
       timelineContentPane.updateLayoutArgs(function(layoutArg) {
         var shift = webglext2.isNumber(layoutArg) && layoutArg >= 2 * groupIndex;
@@ -10784,25 +10751,7 @@ var webglext;
       });
       timelineContentPane.addPane(groupContentPane, 2 * groupIndex + 1, { hide: group.collapsed });
       groupContentPanes[groupGuid] = groupContentPane;
-      var groupAttrsChanged = function() {
-        var groupContentLayoutOpts = timelineContentPane.layoutOptions(groupContentPane);
-        if (group.collapsed !== groupContentLayoutOpts.hide) {
-          groupContentLayoutOpts.hide = group.collapsed;
-          drawable.redraw();
-        }
-      };
-      group.attrsChanged.on(groupAttrsChanged);
-      groupButton.mouseDown.on(function(ev) {
-        if (webglext2.isLeftMouseDown(ev.mouseEvent)) {
-          group.collapsed = !group.collapsed;
-        }
-      });
-      timelineContentPane.layoutOptions(groupContentPane).hide = group.hidden;
       setupRowContainerPane(args, groupContentPane, group.rowGuids, false, group.groupGuid);
-      groupContentPane.dispose.on(function() {
-        group.attrsChanged.off(redrawLabel);
-        group.attrsChanged.off(groupAttrsChanged);
-      });
     };
     root.groupGuids.forEach(addGroup);
     root.groupGuids.valueAdded.on(addGroup);
@@ -10889,9 +10838,9 @@ var webglext;
       var rowLabelColorBg = webglext2.isNotEmpty(row.bgLabelColor) ? row.bgLabelColor : options.rowLabelBgColor;
       var rowLabelColorFg = webglext2.isNotEmpty(row.fgLabelColor) ? row.fgLabelColor : options.rowLabelColor;
       var rowLabelFont = webglext2.isNotEmpty(row.labelFont) ? row.labelFont : options.font;
-      var rowLabel = new webglext2.Label(row.label, rowLabelFont, rowLabelColorFg);
+      var rowLabel = new webglext2.Label(row.label, row.labelIcon, rowLabelFont, rowLabelColorFg);
       var rowLabelPane = new webglext2.Pane({ updatePrefSize: webglext2.fitToLabel(rowLabel) }, false);
-      rowLabelPane.addPainter(webglext2.newLabelPainter(rowLabel, 0, 0.5, 0, 0.5));
+      rowLabelPane.addPainter(webglext2.newLabelPainter(rowLabel, drawable, 0, 0.5, 0, 0.5));
       var rowLabelBackground = new webglext2.Background(rowLabelColorBg);
       var rowHeaderPane = new webglext2.Pane(webglext2.newInsetLayout(options.rowLabelInsets), true);
       rowHeaderPane.addPainter(rowLabelBackground.newPainter());
@@ -11094,10 +11043,10 @@ var webglext;
     };
     var addPlay = document.getElementById("selected-time-autoplay");
     var playState = false;
-    var myVar;
+    var myVar = null;
     addPlay.onclick = function() {
       if (!playState) {
-        myVar = setInterval(playTimeLine, 100);
+        myVar = setInterval(playTimeLine, 30);
         playState = true;
         addPlay.className = "fa fa-pause";
       } else {
@@ -11107,7 +11056,7 @@ var webglext;
       }
     };
     function playTimeLine() {
-      var timeStep2 = 100;
+      var timeStep2 = 30;
       var selectedInterval2 = selection.selectedInterval;
       selectedInterval2.pan(timeStep2);
       if (selectedInterval2.end_PMILLIS > timeAxis.tMax_PMILLIS) {
@@ -11139,24 +11088,6 @@ var webglext;
       }
       drawable.redraw();
     };
-    ui.rowUis.valueAdded.on(function(rowUi) {
-      rowUi.panes.valueAdded.on(function(pane, index) {
-        var id = rowUi.panes.idAt(index);
-        if (id === "maximized-label") {
-          pane.mouseDown.on(function(event) {
-            if (event.clickCount === 2) {
-              model.root.maximizedRowGuids.removeValue(rowUi.rowGuid);
-            }
-          });
-        } else if (id.search("-label$") !== -1) {
-          pane.mouseDown.on(function(event) {
-            if (event.clickCount === 2) {
-              model.root.maximizedRowGuids.add(rowUi.rowGuid);
-            }
-          });
-        }
-      });
-    });
     var tooltip = newToolTip();
     var iTooltipOffset = 12;
     var jTooltipOffset = -12;

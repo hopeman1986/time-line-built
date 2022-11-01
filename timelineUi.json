@@ -1,6 +1,6 @@
 {
     "eventStyles": [ {
-        "styleGuid": "metsci.timelineExample.eventStyle01",
+        "styleGuid": "videoedit.timeline.eventStyle01",
         "icons": [ {
             "url": "images/fugue/weather.png",
             "displayWidth": 16,
@@ -15,7 +15,7 @@
             "hPos": 1
         } ]
     }, {
-        "styleGuid": "metsci.timelineExample.eventStyle02",
+        "styleGuid": "videoedit.timeline.eventStyle02",
         "icons": [ {
             "url": "images/fugue/glass.png",
             "displayWidth": 16,
@@ -24,7 +24,7 @@
             "hPos": 0
         } ]
     }, {
-        "styleGuid": "metsci.timelineExample.eventStyle03",
+        "styleGuid": "videoedit.timeline.eventStyle03",
         "icons": [ {
             "url": "images/fugue/alarm-clock-blue.png",
             "displayWidth": 16,
@@ -34,7 +34,7 @@
         } ]
     } ],
     "annotationStyles": [ {
-        "styleGuid": "metsci.timelineExample.annotationStyle01",
+        "styleGuid": "videoedit.timeline.annotationStyle01",
         "color": "white",
         "vTextOffset": 0,
         "hTextOffset": 10,
@@ -57,7 +57,7 @@
             "vOffset": -9
         } ]
     }, {
-        "styleGuid": "metsci.timelineExample.annotationStyle02",
+        "styleGuid": "videoedit.timeline.annotationStyle02",
         "color": "red",
         "vTextOffset": 9,
         "hTextOffset": -20,
@@ -75,7 +75,7 @@
             "vOffset": 2
         } ]
     }, {
-        "styleGuid": "metsci.timelineExample.annotationStyle03",
+        "styleGuid": "videoedit.timeline.annotationStyle03",
         "color": "rgba(255,0,0,0.5)",
         "uiHint": "vertical-line",
         "icons": [ ]

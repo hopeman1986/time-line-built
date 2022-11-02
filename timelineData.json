@@ -21,10 +21,9 @@
         "end_time": 20000,
         "label": "video track #1",
         "userEditable": true,
-        "fgColor": "RGB(123, 250, 170",
+        "fgColor": "white",
         "bgColor": "RGB(123, 250, 170)",
         "bgSecondaryColor": "white",
-        "borderColor": "red",
         "order": 3,
         "topMargin": 0,
         "bottomMargin": 0,
@@ -57,6 +56,7 @@
         "label": "Video Track #1A",
         "labelIcon": "images/video.png",
         "bgColor" : "#DAFDE6",
+        "borderColor": "#A0A0E0",
         "eventGuids": [
             "track_ids_01"
         ]
@@ -65,6 +65,7 @@
         "label": "Audio Track #1B",
         "bgColor" : "#E3F7F9",
         "labelIcon": "images/image-solid.png",
+        "borderColor": "#A0A0E0",
         "eventGuids": [
             "track_ids_02"
         ]
@@ -73,6 +74,7 @@
         "label": "Audio Track #1C",
         "bgColor" : "#FFE2F9",
         "labelIcon": "images/music-solid.png",
+        "borderColor": "#A0A0E0",
         "eventGuids": [
             "track_ids_03"
         ]

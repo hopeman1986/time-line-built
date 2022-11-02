@@ -4256,7 +4256,7 @@ var webglext;
           drawable.redraw();
         });
         if (icontexture) {
-          var width = Math.min(viewport.w, viewport.h) - 20;
+          var width = Math.min(viewport.w, viewport.h) - 15;
           textureRenderer.draw(gl, icontexture, xFrac, yFrac, {
             xAnchor,
             yAnchor,
@@ -5046,6 +5046,47 @@ var webglext;
       program.endUse(gl);
     };
   }
+  function newRowBorderPainter(color, ui, row, options) {
+    var thickness = options.thickness;
+    var selection = ui.selection;
+    var rowmodel = row;
+    if (!webglext2.isNotEmpty(options.thickness))
+      thickness = 1;
+    var program = new webglext2.Program(webglext2.xyNdc_VERTSHADER, webglext2.solid_FRAGSHADER);
+    var u_Color = new webglext2.UniformColor(program, "u_Color");
+    var a_XyNdc = new webglext2.Attribute(program, "a_XyNdc");
+    var xyBuffer_NDC = webglext2.newDynamicBuffer();
+    var numVertices = 24;
+    var xy_NDC = new Float32Array(2 * numVertices);
+    var borderColor = null;
+    return function(gl, viewport) {
+      gl.disable(webglext2.GL.BLEND);
+      if (selection.selectedRow.hasValue(rowmodel)) {
+        borderColor = color;
+      } else {
+        borderColor = webglext2.rgba(255, 255, 255, 1);
+      }
+      program.use(gl);
+      u_Color.setData(gl, borderColor);
+      var w_NDC = 2 * thickness / viewport.w;
+      var h_NDC = 2 * thickness / viewport.h;
+      var index = 0;
+      if (borderColor)
+        index = webglext2.putQuadXys(xy_NDC, index, -1, 1 - w_NDC, 1, 1 - h_NDC);
+      if (borderColor)
+        index = webglext2.putQuadXys(xy_NDC, index, 1 - w_NDC, 1, 1, -1 + h_NDC);
+      if (borderColor)
+        index = webglext2.putQuadXys(xy_NDC, index, -1 + w_NDC, 1, -1 + h_NDC, -1);
+      if (borderColor)
+        index = webglext2.putQuadXys(xy_NDC, index, -1, -1 + w_NDC, 1 - h_NDC, -1);
+      xyBuffer_NDC.setData(xy_NDC);
+      a_XyNdc.setDataAndEnable(gl, xyBuffer_NDC, 2, webglext2.GL.FLOAT);
+      gl.drawArrays(webglext2.GL.TRIANGLES, 0, numVertices);
+      a_XyNdc.disable(gl);
+      program.endUse(gl);
+    };
+  }
+  webglext2.newRowBorderPainter = newRowBorderPainter;
 })(webglext || (webglext = {}));
 var webglext;
 (function(webglext2) {
@@ -8149,6 +8190,9 @@ var webglext;
       this._hoveredTime_PMILLIS = new webglext2.SimpleModel();
       this._selectedInterval = new TimeIntervalModel(0, 0);
       this._hoveredRow = new webglext2.SimpleModel();
+      this._selectedRow = new webglext2.OrderedSet([], function(e) {
+        return e.rowGuid;
+      });
       this._hoveredEvent = new webglext2.SimpleModel();
       this._selectedEvents = new webglext2.OrderedSet([], function(e) {
         return e.eventGuid;
@@ -8186,6 +8230,13 @@ var webglext;
     Object.defineProperty(TimelineSelectionModel2.prototype, "hoveredRow", {
       get: function() {
         return this._hoveredRow;
+      },
+      enumerable: false,
+      configurable: true
+    });
+    Object.defineProperty(TimelineSelectionModel2.prototype, "selectedRow", {
+      get: function() {
+        return this._selectedRow;
       },
       enumerable: false,
       configurable: true
@@ -8324,6 +8375,7 @@ var webglext;
     input.eventHover.on(function(event) {
       selection.hoveredEvent.value = event;
     });
+    options.allowEventMultiSelection = false;
     if (options.allowEventMultiSelection) {
       input.mouseDown.on(function(ev) {
         if (webglext2.isLeftMouseDown(ev.mouseEvent)) {
@@ -8352,6 +8404,11 @@ var webglext;
           if (webglext2.isNotEmpty(event)) {
             selection.selectedEvents.retainValues([event]);
             selection.selectedEvents.add(event);
+          }
+          var row = selection.hoveredRow.value;
+          if (webglext2.isNotEmpty(row)) {
+            selection.selectedRow.retainValues([row]);
+            selection.selectedRow.add(row);
           }
         }
       });
@@ -9830,7 +9887,7 @@ var webglext;
     var laneHeight = options.laneHeight;
     var topMargin = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.topMargin) ? barOpts.topMargin : 1.2;
     var bottomMargin = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.bottomMargin) ? barOpts.bottomMargin : 1.2;
-    var borderThickness = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.borderThickness) ? barOpts.borderThickness : 2;
+    var borderThickness = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.borderThickness) ? barOpts.borderThickness : 4;
     var cornerType = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.cornerType) ? barOpts.cornerType : JointType.BEVEL;
     var defaultColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.defaultColor) ? barOpts.defaultColor : options.timelineFgColor.withAlphaTimes(0.4);
     var defaultBorderColor = webglext2.isNotEmpty(barOpts) && webglext2.isNotEmpty(barOpts.defaultBorderColor) ? barOpts.defaultBorderColor : null;
@@ -10253,6 +10310,7 @@ var webglext;
     var axisLabelColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.axisLabelColor) ? options.axisLabelColor : fgColor;
     var rowBgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowBgColor) ? options.rowBgColor : webglext2.rgb(0.02, 0.086, 0.165);
     var rowAltBgColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowAltBgColor) ? options.rowAltBgColor : webglext2.rgb(0.02, 0.086, 0.165);
+    var rowBorderColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowBorderColor) ? options.rowBorderColor : webglext2.rgb(0.12, 0.46, 0.165);
     var gridColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.gridColor) ? options.gridColor : webglext2.gray(0.5);
     var selectedIntervalFillColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.selectedIntervalFillColor) ? options.selectedIntervalFillColor : webglext2.rgba(0, 0.6, 0.8, 0.157);
     var selectedIntervalBorderColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.selectedIntervalBorderColor) ? options.selectedIntervalBorderColor : webglext2.rgb(0, 0.2, 1);
@@ -10262,8 +10320,8 @@ var webglext;
     var axisLabelAlign = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.axisLabelAlign) ? options.axisLabelAlign : 0.5;
     showTopAxis = true;
     var groupLabelInsets = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.groupLabelInsets) ? options.groupLabelInsets : webglext2.newInsets(6, 10);
-    var rowLabelInsets = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelInsets) ? options.rowLabelInsets : webglext2.newInsets(0, 35);
-    var rowLabelPaneWidth = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelPaneWidth) ? options.rowLabelPaneWidth : 140;
+    var rowLabelInsets = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelInsets) ? options.rowLabelInsets : webglext2.newInsets(0, 0, 0, 20);
+    var rowLabelPaneWidth = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowLabelPaneWidth) ? options.rowLabelPaneWidth : 70;
     var rowSeparatorHeight = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowSeparatorHeight) ? options.rowSeparatorHeight : 2;
     var scrollbarWidth = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.scrollbarWidth) ? options.scrollbarWidth : 16;
     scrollbarWidth = showScrollbar ? scrollbarWidth : 0;
@@ -10293,6 +10351,8 @@ var webglext;
     selection.hoveredEvent.changed.on(redraw);
     selection.selectedEvents.valueAdded.on(redraw);
     selection.selectedEvents.valueRemoved.on(redraw);
+    selection.selectedRow.valueAdded.on(redraw);
+    selection.selectedRow.valueRemoved.on(redraw);
     var redrawCursor = function() {
       if (!model.cursors.isEmpty) {
         drawable.redraw();
@@ -10321,6 +10381,7 @@ var webglext;
       rowSeparatorHeight,
       draggableEdgeWidth,
       snapToDistance,
+      rowBorderColor,
       mouseWheelListener
     };
     var contentPaneArgs;
@@ -10737,6 +10798,7 @@ var webglext;
     var bgColor = options.bgColor;
     var rowBgColor = options.rowBgColor;
     var rowAltBgColor = options.rowAltBgColor;
+    var rowBorderColor = options.rowBorderColor;
     var groupLabelInsets = options.groupLabelInsets;
     var draggableEdgeWidth = options.draggableEdgeWidth;
     var snapToDistance = options.snapToDistance;
@@ -10819,9 +10881,6 @@ var webglext;
     rowInsetPane.addPainter(webglext2.newBorderPainter(args.options.bgColor, { thickness: rowInsetTop, drawRight: false, drawLeft: false, drawBottom: false }));
     rowInsetPane.addPainter(webglext2.newBorderPainter(args.options.bgColor, { thickness: rowInsetBottom, drawRight: false, drawLeft: false, drawTop: false }));
     rowBackgroundPane.addPane(rowInsetPane, true);
-    var rowOverlayPane = new webglext2.Pane(null, false);
-    rowOverlayPane.addPainter(webglext2.newBorderPainter(args.options.rowLabelColor, { drawRight: false, drawTop: false, drawBottom: false }));
-    rowBackgroundPane.addPane(rowOverlayPane, false);
     return { rowInsetPane, rowBackgroundPane };
   }
   function setupRowContainerPane(args, parentPane, guidList, isMaximized, keyPrefix) {
@@ -10876,6 +10935,7 @@ var webglext;
           }
           rowPaneFactory = newRowPaneFactory;
           rowContentPane = rowPaneFactory && rowPaneFactory(drawable, timeAxis, rowDataAxis, model, row, ui, rowContentOptions);
+          rowContentPane.addPainter(webglext2.newRowBorderPainter(options.rowBorderColor, ui, row, { thickness: 2 }));
           if (rowContentPane) {
             rowInsetPane.addPane(rowContentPane);
           }

@@ -139,6 +139,11 @@ var webglext;
     return moment(time_PMILLIS).toISOString();
   }
   webglext2.formatTime_ISO8601 = formatTime_ISO8601;
+  function getCurrentTimMillis() {
+    var date = new Date();
+    return moment(date).valueOf();
+  }
+  webglext2.getCurrentTimMillis = getCurrentTimMillis;
 })(webglext || (webglext = {}));
 var webglext;
 (function(webglext2) {
@@ -5840,7 +5845,7 @@ var webglext;
 (function(webglext2) {
   function newTimeAxisPainter(timeAxis, labelSide, options) {
     var tickSpacings = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSpacings) ? options.tickSpacings : 60;
-    var font = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.font) ? options.font : "11px sans-serif";
+    var font = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.font) ? options.font : "14px sans-serif";
     var textColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.textColor) ? options.textColor : webglext2.black;
     var tickColor = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickColor) ? options.tickColor : webglext2.black;
     var tickSize = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.tickSize) ? options.tickSize : 6;
@@ -6363,6 +6368,9 @@ var webglext;
     Object.defineProperty(TimelineTrackModel2.prototype, "eventGuid", {
       get: function() {
         return this._eventGuid;
+      },
+      set: function(strGuid) {
+        this._eventGuid = strGuid;
       },
       enumerable: false,
       configurable: true
@@ -10172,7 +10180,7 @@ var webglext;
     } else if (!row.timeseriesGuids.isEmpty) {
       return webglext2.timeseriesRowPaneFactory_DEFAULT;
     } else {
-      return null;
+      return webglext2.eventsRowPaneFactory_DEFAULT;
     }
   }
   webglext2.rowPaneFactoryChooser_DEFAULT = rowPaneFactoryChooser_DEFAULT;
@@ -10298,7 +10306,7 @@ var webglext;
   }(webglext2.Pane);
   webglext2.TimelinePane = TimelinePane;
   function newTimelinePane(drawable, timeAxis, model, options, ui) {
-    var font = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.font) ? options.font : "11px verdana,sans-serif";
+    var font = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.font) ? options.font : "12px sans-serif";
     var rowPaneFactoryChooser = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.rowPaneFactoryChooser) ? options.rowPaneFactoryChooser : webglext2.rowPaneFactoryChooser_DEFAULT;
     var showScrollbar = webglext2.isNotEmpty(options) && webglext2.isNotEmpty(options.showScrollbar) ? options.showScrollbar : true;
     var scrollbarOptions = webglext2.isNotEmpty(options) ? options.scrollbarOptions : null;
@@ -11075,8 +11083,8 @@ var webglext;
       bgColor: webglext2.white,
       rowBgColor: webglext2.white,
       rowAltBgColor: webglext2.rgb(0.05, 0.056, 0.12),
-      selectedIntervalFillColor: webglext2.rgba(0, 0.7, 0.9, 0.187),
-      selectedIntervalBorderColor: webglext2.rgb(0, 0.3, 0.6),
+      selectedIntervalFillColor: webglext2.rgba(0.2, 0.6, 0.4, 0.1),
+      selectedIntervalBorderColor: webglext2.rgb(0.4, 0.9, 0.4),
       allowEventMultiSelection: true,
       gridColor: webglext2.gray(0.3),
       tickSpacings: 60
@@ -11098,8 +11106,64 @@ var webglext;
         ui.annotationStyles.add(new webglext2.TimelineAnnotationStyleUi(s));
       });
     });
+    var timelineTrank = {
+      eventGuid: "testtest",
+      "start_time": 15e3,
+      "end_time": 25e3,
+      label: "video _track",
+      userEditable: true,
+      fgColor: "white",
+      bgColor: "RGB(123, 250, 170)",
+      bgSecondaryColor: "white",
+      order: 3,
+      topMargin: 0,
+      bottomMargin: 0,
+      labelTopMargin: 10,
+      labelBottomMargin: 0,
+      labelVAlign: 0.5,
+      labelHAlign: 1,
+      fillPattern: "stripe"
+    };
+    var defaultPeriod = 1e4;
     var addTrack = document.getElementById("selected-time-add");
+    var strGuid = "test_pro";
+    var colorArr = { "videoedit.timeline.row01a": webglext2.rgba(123 / 255, 250 / 255, 170 / 255, 1), "videoedit.timeline.row01b": webglext2.rgba(165 / 255, 227 / 255, 236 / 255, 1), "videoedit.timeline.row01c": webglext2.rgba(255 / 255, 157 / 255, 234 / 255, 1) };
+    var timelineTrackModel = null;
     addTrack.onclick = function() {
+      var timeLineModelArr = ui.selection.selectedRow.toArray();
+      if (timeLineModelArr && timeLineModelArr.length > 0) {
+        var now = new Date();
+        timelineTrackModel = new webglext2.TimelineTrackModel(timelineTrank);
+        timelineTrackModel.eventGuid = strGuid + webglext2.getCurrentTimMillis();
+        var selectedRow = timeLineModelArr[0];
+        var allEventGuids = selectedRow.eventGuids;
+        var startTime = 0;
+        var endTime = 0;
+        var bgColor = colorArr[selectedRow.rowGuid];
+        for (var n = 0; n < allEventGuids.length; n++) {
+          var eventGuid = allEventGuids.valueAt(n);
+          var event = model.event(eventGuid);
+          startTime = event.end_PMILLIS > startTime ? event.end_PMILLIS : startTime;
+        }
+        startTime += 100;
+        endTime = startTime + defaultPeriod;
+        timelineTrackModel.start_PMILLIS = startTime;
+        timelineTrackModel.end_PMILLIS = endTime;
+        timelineTrackModel.bgColor = bgColor;
+        model.events.add(timelineTrackModel);
+        selectedRow.eventGuids.add(timelineTrackModel.eventGuid);
+      }
+    };
+    var removeTrack = document.getElementById("selected-time-minus");
+    removeTrack.onclick = function() {
+      var timeLineModelArr = ui.selection.selectedRow.toArray();
+      var selectionEvents = ui.selection.selectedEvents;
+      if (timeLineModelArr && timeLineModelArr.length > 0 && selectionEvents && selectionEvents.length > 0) {
+        var currentRow = ui.selection.selectedRow.valueAt(0);
+        var selectEvent = selectionEvents.valueAt(0);
+        currentRow.eventGuids.removeValue(selectEvent.eventGuid);
+        model.events.removeId(selectEvent.eventGuid);
+      }
     };
     var addPlay = document.getElementById("selected-time-autoplay");
     var playState = false;

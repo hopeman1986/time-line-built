@@ -1,3 +1,4 @@
 {
-  "devCommand": "node dev"
+  "devCommand": "node dev",
+  "framework": "nextjs"
 }

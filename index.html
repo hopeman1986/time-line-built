@@ -4,14 +4,19 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <title>Video TimeLineEditor</title>
+
     <link rel="stylesheet" href="timeline.css">
     <link rel="stylesheet" href="toolbar.css">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="font-awesome.css">
 
+    
     <script type="text/javascript" charset="UTF-8" src="jquery.min.js"></script>
     <script type="text/javascript" charset="UTF-8" src="jquery-ui.min.js"></script>
+
+    <script type="text/javascript" charset="UTF-8" src="mp4box.all.min.js"></script>
+
     <link rel="stylesheet" href="jquery-ui.min.css">
     <link rel="stylesheet" href="datepicker.css">
 
@@ -19,8 +24,9 @@
     <script type="text/javascript" charset="UTF-8" src="moment.js"></script>
     <script type="text/javascript" charset="UTF-8" src="moment-timezone.js"></script>
     <script type="text/javascript" charset="UTF-8" src="timelines.js"></script>
+    <script type="text/javascript" charset="UTF-8" src="videoplayer.js"></script>
     <!-- RELEASE_END -->
-
+    
 </head>
 <body>
 
@@ -50,12 +56,18 @@
         </ul>
     </nav>
 
+
+    <div id = "VideoPlayer">
+        <canvas id="video_play"  width=1280 height=720></canvas>
+    </div>
     <div id="exampleDiv"></div>
 
-    <script type="text/javascript" charset="UTF-8">
-        var div = document.getElementById( 'exampleDiv' );
+<!-- <script type="text/javascript" charset="UTF-8"> -->
+<script type="module" charset="UTF-8">
+
+    var div = document.getElementById( 'exampleDiv' );
         try {
-            webglext.dispTimeLines( div );
+            webglext.dispTimeLines( div, video_play_start);
         }
         catch ( e ) {
             if ( e.message === 'WebGLContextCreationError' ) {
@@ -63,6 +75,103 @@
                 div.textContent = 'WebGL is not available, because either the browser, the graphics hardware, or the graphics driver does not support it';
             }
             throw e;
+        }
+
+    var canvas_video = document.querySelector("canvas");
+    var offscreen_canvas = null;
+
+    /////////////// play logic //////////////////////////////////
+    {
+        for(let i = 0 ; i < 10; i++) {
+            if(canvas_video.id == "video_play") {
+                offscreen_canvas = canvas_video.transferControlToOffscreen();
+                break;
+            }
+        }
+     }
+     let mediaWorker = new Worker('./media_worker.js');
+     mediaWorker.postMessage({command: 'initialize',
+                         audioFile: './data/audio_aac.mp4',
+                         videoFile: './data/mov_bbb.mp4',
+                         canvas: offscreen_canvas},
+                        {transfer: [offscreen_canvas]});
+        
+
+    /////// preprocess logic
+    let initResolver = null;
+    let initDone = new Promise(resolver => (initResolver = resolver));
+    let audioController = new webglvideo.WebAudioController();
+
+    mediaWorker.addEventListener('message', (e) => {
+        console.assert(e.data.command == 'initialize-done');
+        audioController.initialize(e.data.sampleRate, e.data.channelCount,
+                            e.data.sharedArrayBuffer);
+        initResolver();
+        initResolver = null;
+    });
+    await initDone;
+    
+    function video_play_start(message) {
+
+        if(message === "start") {
+            console.log("playback start");
+
+                // Audio can only start in reaction to a user-gesture.
+                audioController.play().then(() => console.log('playback started'));
+                mediaWorker.postMessage({
+                    command: 'play',
+                    mediaTimeSecs: audioController.getMediaTimeInSeconds(),
+                    mediaTimeCapturedAtHighResTimestamp:
+                        performance.now() + performance.timeOrigin
+                });
+                sendMediaTimeUpdates(true);
+        }
+        else {
+            console.log("playback pause");
+            audioController.pause().then(() => { 
+                console.log("playback paused");
+                mediaWorker.postMessage({command: 'pause'});
+            });
+            sendMediaTimeUpdates(false);
+        }
+    }
+    
+    {
+            // Worker setup.
+        // function setStatus(message) {
+        //     console.log(message);
+        // }
+        ////////// for preview
+        //   const dataUri = "./1.mp4";
+        //   const rendererName = "webgl";
+        //   const worker = new Worker("./worker.js");
+        //   worker.addEventListener("message", setStatus);
+        //   worker.postMessage({dataUri, rendererName, offscreen_canvas}, [offscreen_canvas]);
+    }    
+
+
+
+        let mediaTimeUpdateInterval = null;
+        function sendMediaTimeUpdates(enabled) {
+            if (enabled) {
+                // Local testing shows this interval (1 second) is frequent enough that the
+                // estimated media time between updates drifts by less than 20 msec. Lower
+                // values didn't produce meaningfully lower drift and have the downside of
+                // waking up the main thread more often. Higher values could make av sync
+                // glitches more noticeable when changing the output device.
+                const UPDATE_INTERVAL = 1000;
+                mediaTimeUpdateInterval = setInterval(() => {
+                mediaWorker.postMessage({
+                    command: 'update-media-time',
+                    mediaTimeSecs: audioController.getMediaTimeInSeconds(),
+                    mediaTimeCapturedAtHighResTimestamp:
+                        performance.now() + performance.timeOrigin
+                });
+                }, UPDATE_INTERVAL);
+            } else {
+                clearInterval(mediaTimeUpdateInterval);
+                mediaTimeUpdateInterval = null;
+            }
         }
     </script>
 

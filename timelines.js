@@ -10720,11 +10720,14 @@ var webglext;
             gridColor: webglext.gray(0.3),
             tickSpacings: 60,
         };
+        var seekBarMinValue = 0;
+        var seekBarMaxValue = 50;
+        var timeLineEndTime = 15000;
         var model = new webglext.TimelineModel();
         var ui = new webglext.TimelineUi(model, { allowEventMultiSelection: true });
         var timelinePane = webglext.newTimelinePane(drawable, timeAxis, model, timelineOptions, ui);
         var selection = ui.selection;
-        selection.selectedInterval.setInterval(0, 200);
+        selection.selectedInterval.setInterval(seekBarMinValue, seekBarMaxValue, (seekBarMinValue + seekBarMaxValue) / 2.0);
         var contentPane = new webglext.Pane(webglext.newCornerLayout(webglext.Side.LEFT, webglext.Side.TOP));
         contentPane.addPane(timelinePane);
         drawable.setContentPane(webglext.newInsetPane(contentPane, webglext.newInsets(12, 10, 2), timelineOptions.bgColor));
@@ -10771,7 +10774,6 @@ var webglext;
                 var selectedRow = timeLineModelArr[0];
                 var allEventGuids = selectedRow.eventGuids;
                 var startTime = 0;
-                var endTime = 0;
                 let bgColor = colorArr[selectedRow.rowGuid];
                 for (var n = 0; n < allEventGuids.length; n++) {
                     var eventGuid = allEventGuids.valueAt(n);
@@ -10779,19 +10781,19 @@ var webglext;
                     startTime = (event.end_PMILLIS > startTime) ? event.end_PMILLIS : startTime;
                 }
                 startTime += 100;
-                endTime = startTime + defaultPeriod;
+                timeLineEndTime = startTime + defaultPeriod;
                 timelineTrackModel.start_PMILLIS = startTime;
-                timelineTrackModel.end_PMILLIS = endTime;
+                timelineTrackModel.end_PMILLIS = timeLineEndTime;
                 timelineTrackModel.bgColor = bgColor;
                 model.events.add(timelineTrackModel);
                 selectedRow.eventGuids.add(timelineTrackModel.eventGuid);
                 for (var n = 0; n < allEventGuids.length; n++) {
                     var eventGuid = allEventGuids.valueAt(n);
                     var event = model.event(eventGuid);
-                    endTime = (event.end_PMILLIS > endTime) ? event.end_PMILLIS : endTime;
+                    timeLineEndTime = (event.end_PMILLIS > timeLineEndTime) ? event.end_PMILLIS : timeLineEndTime;
                 }
-                endTime = endTime * 1.1;
-                timeAxis.setProperty(0, endTime);
+                timeLineEndTime = timeLineEndTime * 1.1;
+                timeAxis.setProperty(0, timeLineEndTime);
             }
         };
         var removeTrack = document.getElementById('selected-time-minus');
@@ -10828,7 +10830,11 @@ var webglext;
             var selectedInterval = selection.selectedInterval;
             selectedInterval.pan(timeStep);
             // if the time selection scrolls off the screen, jump the axis to keep it visible
-            if (selectedInterval.end_PMILLIS > timeAxis.tMax_PMILLIS) {
+            if (selectedInterval.end_PMILLIS > timeLineEndTime) {
+                selectedInterval.setInterval(seekBarMinValue, seekBarMaxValue, (seekBarMinValue + seekBarMaxValue) / 2.0);
+                timeAxis.setProperty(0, timeLineEndTime);
+            }
+            else if (selectedInterval.end_PMILLIS > timeAxis.tMax_PMILLIS) {
                 var tSize_MILLIS = timeAxis.tSize_MILLIS;
                 timeAxis.tMax_PMILLIS = selectedInterval.end_PMILLIS;
                 timeAxis.tMin_PMILLIS = timeAxis.tMax_PMILLIS - tSize_MILLIS;

@@ -5959,13 +5959,17 @@ var webglext;
             this.end_time_val = this._vMax;
         }
         setProperty(tMin_PMILLIS, tMax_PMILLIS) {
-            let w_epoch_PMILLIS = 0.5 * (tMin_PMILLIS + tMax_PMILLIS);
-            this._vMin = tMin_PMILLIS - w_epoch_PMILLIS;
-            this._vMax = tMax_PMILLIS - w_epoch_PMILLIS;
             this._epoch_PMILLIS = 0.5 * (tMin_PMILLIS + tMax_PMILLIS);
+            this._vMin = tMin_PMILLIS - this._epoch_PMILLIS;
+            this._vMax = tMax_PMILLIS - this._epoch_PMILLIS;
             this.start_time_val = this._vMin;
             this.end_time_val = this._vMax;
             this._limitsChanged.fire();
+        }
+        setClearMove(tMin_PMILLIS) {
+            let deltaVal = this._vMax - this._vMin;
+            this._vMin = tMin_PMILLIS - this._epoch_PMILLIS;
+            this._vMax = tMin_PMILLIS + deltaVal;
         }
         get tMin_PMILLIS() {
             return (this._epoch_PMILLIS + this.vMin);
@@ -10822,7 +10826,7 @@ var webglext;
                 clearInterval(myVar);
                 addPlay.className = "fa fa-play";
                 playState = false;
-                video_play_start("pause");
+                video_play_start("stop");
             }
         };
         function playTimeLine() {
@@ -10832,7 +10836,7 @@ var webglext;
             // if the time selection scrolls off the screen, jump the axis to keep it visible
             if (selectedInterval.start_PMILLIS > timeLineEndTime) {
                 selectedInterval.setInterval(seekBarMinValue, seekBarMaxValue, (seekBarMinValue + seekBarMaxValue) / 2.0);
-                timeAxis.setProperty(0, timeLineEndTime);
+                timeAxis.setClearMove(0);
             }
             else if (selectedInterval.start_PMILLIS > timeAxis.tMax_PMILLIS) {
                 var tSize_MILLIS = timeAxis.tSize_MILLIS;

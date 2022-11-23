@@ -10701,7 +10701,7 @@ var webglext;
         updateCanvasSize();
         // Timeline Setup
         //
-        var totalTimeLength = 40000;
+        var totalTimeLength = 20000;
         var timeAxis = new webglext.TimeAxis1D(0, totalTimeLength);
         timeAxis.limitsChanged.on(drawable.redraw);
         var timelineOptions = {
@@ -10743,7 +10743,7 @@ var webglext;
         var timelineTrank = {
             eventGuid: "testtest",
             "start_time": 15000,
-            "end_time": 25000,
+            "end_time": 20000,
             label: "video _track",
             userEditable: true,
             fgColor: "white",
@@ -10792,7 +10792,7 @@ var webglext;
                     var event = model.event(eventGuid);
                     timeLineEndTime = (event.end_PMILLIS > timeLineEndTime) ? event.end_PMILLIS : timeLineEndTime;
                 }
-                timeLineEndTime = timeLineEndTime * 1.1;
+                timeLineEndTime = timeLineEndTime * 102 / 100;
                 timeAxis.setProperty(0, timeLineEndTime);
             }
         };
@@ -10822,7 +10822,7 @@ var webglext;
                 clearInterval(myVar);
                 addPlay.className = "fa fa-play";
                 playState = false;
-                video_play_start("stop");
+                video_play_start("pause");
             }
         };
         function playTimeLine() {
@@ -10830,13 +10830,13 @@ var webglext;
             var selectedInterval = selection.selectedInterval;
             selectedInterval.pan(timeStep);
             // if the time selection scrolls off the screen, jump the axis to keep it visible
-            if (selectedInterval.end_PMILLIS > timeLineEndTime) {
+            if (selectedInterval.start_PMILLIS > timeLineEndTime) {
                 selectedInterval.setInterval(seekBarMinValue, seekBarMaxValue, (seekBarMinValue + seekBarMaxValue) / 2.0);
                 timeAxis.setProperty(0, timeLineEndTime);
             }
-            else if (selectedInterval.end_PMILLIS > timeAxis.tMax_PMILLIS) {
+            else if (selectedInterval.start_PMILLIS > timeAxis.tMax_PMILLIS) {
                 var tSize_MILLIS = timeAxis.tSize_MILLIS;
-                timeAxis.tMax_PMILLIS = selectedInterval.end_PMILLIS;
+                timeAxis.tMax_PMILLIS = selectedInterval.start_PMILLIS;
                 timeAxis.tMin_PMILLIS = timeAxis.tMax_PMILLIS - tSize_MILLIS;
             }
             drawable.redraw();

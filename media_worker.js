@@ -40,7 +40,7 @@ function getMediaTimeMicroSeconds() {
 self.addEventListener('message', async function(e) {
   await modulesReady;
 
-  console.info(`Worker message: ${JSON.stringify(e.data)}`);
+//  console.info(`Worker message: ${JSON.stringify(e.data)}`);
 
   switch (e.data.command) {
     case 'initialize':
@@ -58,7 +58,8 @@ self.addEventListener('message', async function(e) {
       postMessage({command: 'initialize-done',
                    sampleRate: audioRenderer.sampleRate,
                    channelCount: audioRenderer.channelCount,
-                   sharedArrayBuffer: audioRenderer.ringbuffer.buf});
+                   sharedArrayBuffer: audioRenderer.ringbuffer.buf,
+                   movie_duration: videoRenderer.movie_duration});
       break;
     case 'play':
       playing = true;
@@ -73,8 +74,18 @@ self.addEventListener('message', async function(e) {
     case 'pause':
       playing = false;
       audioRenderer.pause();
+      await seekFile(0);
+
+      playing = true;
+      updateMediaTime(0,
+        0);
+
+      audioRenderer.play();
+      self.requestAnimationFrame(renderVideo);
+
       break;
     case 'update-media-time':
+      console.log("update-media-time________", e.data.mediaTimeSecs);
       updateMediaTime(e.data.mediaTimeSecs,
                       e.data.mediaTimeCapturedAtHighResTimestamp);
       break;
@@ -93,3 +104,8 @@ self.addEventListener('message', async function(e) {
     self.requestAnimationFrame(renderVideo);
   }
 });
+
+async function seekFile(time) {
+  videoRenderer.seekFile(time);
+  audioRenderer.seekFile(time);
+}

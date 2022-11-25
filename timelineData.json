@@ -18,7 +18,7 @@
     "events": [  {
         "eventGuid": "track_ids_01",
         "start_time": 0,
-        "end_time": 20000,
+        "end_time": 40000,
         "label": "video track #1",
         "userEditable": true,
         "fgColor": "white",
@@ -43,7 +43,7 @@
     }, {
         "eventGuid": "track_ids_03",
         "start_time": 0,
-        "end_time": 8000,
+        "end_time": 40000,
         "label": "Audio Track #3",
         "userEditable": true,   
         "fgColor": "white",

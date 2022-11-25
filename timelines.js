@@ -3252,6 +3252,12 @@ var webglext;
     function jMouse(element, ev) {
         return (element.clientHeight - (ev.clientY - element.getBoundingClientRect().top));
     }
+    // function iMouse( element : HTMLElement, ev : TouchEvent ) : number {
+    //     return ( ev.changedTouches[0].clientX - element.getBoundingClientRect( ).left );
+    // }
+    // function jMouse( element : HTMLElement, ev : TouchEvent ) : number {
+    //     return ( element.clientHeight - ( ev.changedTouches[0].clientY - element.getBoundingClientRect( ).top ) );
+    // }
     function mouseWheelSteps(ev) {
         // Firefox puts the scroll amount in the 'detail' field; everybody else puts it in 'wheelDelta'
         // Firefox uses positive values for a downward scroll; everybody else uses positive for upward
@@ -3357,6 +3363,32 @@ var webglext;
         }
         refreshMouseCursor();
         contentPane.mouseCursorChanged.on(refreshMouseCursor);
+        element.addEventListener('touchstart', function (tev) {
+            let ev = Object();
+            ev.clientX = tev.changedTouches[0].clientX;
+            ev.clientY = tev.changedTouches[0].clientY;
+            ev.buttons = 1;
+            var press_PMILLIS = (new Date()).getTime();
+            var i = iMouse(element, ev);
+            var j = jMouse(element, ev);
+            if (press_PMILLIS - prevPress_PMILLIS < multiPressTimeout_MILLIS) {
+                clickCount++;
+            }
+            else {
+                clickCount = 1;
+            }
+            prevPress_PMILLIS = press_PMILLIS;
+            var newPanes = contentPane.panesAt(i, j);
+            detectEntersAndExits(currentPanes, newPanes, i, j, ev);
+            currentPanes = newPanes;
+            for (var n = 0; n < currentPanes.length; n++) {
+                currentPanes[n].fireMouseDown(i, j, clickCount, ev);
+            }
+            refreshMouseCursor();
+            dragging = true;
+            // Disable browser-default double-click action, which selects text and messes up subsequent drags
+            //ev.preventDefault( );
+        });
         element.addEventListener('mousedown', function (ev) {
             var press_PMILLIS = (new Date()).getTime();
             var i = iMouse(element, ev);
@@ -3380,6 +3412,23 @@ var webglext;
             ev.preventDefault();
         });
         // Only want NON-DRAG moves from the canvas (e.g. we don't want moves that occur in an overlay div) -- so subscribe to CANVAS's mousemove
+        element.addEventListener('touchmove', function (ev) {
+            if (!dragging) {
+                let mEv = Object();
+                mEv.clientX = ev.changedTouches[0].clientX;
+                mEv.clientY = ev.changedTouches[0].clientY;
+                mEv.buttons = 1;
+                var i = iMouse(element, mEv);
+                var j = jMouse(element, mEv);
+                var newPanes = contentPane.panesAt(i, j);
+                detectEntersAndExits(currentPanes, newPanes, i, j, mEv);
+                currentPanes = newPanes;
+                for (var n = 0; n < currentPanes.length; n++) {
+                    currentPanes[n].fireMouseMove(i, j, mEv);
+                }
+                refreshMouseCursor();
+            }
+        });
         element.addEventListener('mousemove', function (ev) {
             if (!dragging) {
                 var i = iMouse(element, ev);
@@ -3391,6 +3440,20 @@ var webglext;
                     currentPanes[n].fireMouseMove(i, j, ev);
                 }
                 refreshMouseCursor();
+            }
+        });
+        // During a DRAG we want all move events, even ones that occur outside the canvas -- so subscribe to WINDOW's mousemove
+        window.addEventListener('touchmove', function (ev) {
+            if (dragging) {
+                var mEv = Object();
+                mEv.clientX = ev.changedTouches[0].clientX;
+                mEv.clientY = ev.changedTouches[0].clientY;
+                mEv.buttons = 1;
+                var i = iMouse(element, mEv);
+                var j = jMouse(element, mEv);
+                for (var n = 0; n < currentPanes.length; n++) {
+                    currentPanes[n].fireMouseMove(i, j, mEv);
+                }
             }
         });
         // During a DRAG we want all move events, even ones that occur outside the canvas -- so subscribe to WINDOW's mousemove
@@ -3463,6 +3526,15 @@ var webglext;
                 endDrag(ev);
             }
         });
+        // The window always gets the mouse-up event at the end of a drag -- even if it occurs outside the browser window
+        window.addEventListener('touchend', function (tev) {
+            var ev = Object();
+            ev.clientX = tev.changedTouches[0].clientX;
+            ev.clientY = tev.changedTouches[0].clientY;
+            if (dragging) {
+                endDrag(ev);
+            }
+        });
         // We don't receive mouse events that happen over another iframe -- even during a drag. If we miss a mouseup that
         // should terminate a drag, we end up stuck in dragging mode, which makes for a really lousy user experience. To
         // avoid that, whenever the mouse moves, check whether the button is down. If we're still in dragging mode, but
@@ -3501,6 +3573,9 @@ var webglext;
         }
         // Firefox uses event type 'DOMMouseScroll' for mouse-wheel events; everybody else uses 'mousewheel'
         var handleMouseWheel = function (ev) {
+            if (!ev.ctrlKey)
+                return;
+            ev.preventDefault();
             var i = iMouse(element, ev);
             var j = jMouse(element, ev);
             if (dragging) {
@@ -10705,8 +10780,10 @@ var webglext;
         updateCanvasSize();
         // Timeline Setup
         //
-        var totalTimeLength = 20000;
-        var timeAxis = new webglext.TimeAxis1D(0, totalTimeLength);
+        var seekBarMinValue = 0;
+        var seekBarMaxValue = 50;
+        var timeLineEndTime = 40000;
+        var timeAxis = new webglext.TimeAxis1D(0, timeLineEndTime + 1);
         timeAxis.limitsChanged.on(drawable.redraw);
         var timelineOptions = {
             showTopAxis: true,
@@ -10724,9 +10801,6 @@ var webglext;
             gridColor: webglext.gray(0.3),
             tickSpacings: 60,
         };
-        var seekBarMinValue = 0;
-        var seekBarMaxValue = 50;
-        var timeLineEndTime = 15000;
         var model = new webglext.TimelineModel();
         var ui = new webglext.TimelineUi(model, { allowEventMultiSelection: true });
         var timelinePane = webglext.newTimelinePane(drawable, timeAxis, model, timelineOptions, ui);
@@ -10826,7 +10900,7 @@ var webglext;
                 clearInterval(myVar);
                 addPlay.className = "fa fa-play";
                 playState = false;
-                video_play_start("stop");
+                video_play_start("pause");
             }
         };
         function playTimeLine() {
@@ -10888,32 +10962,33 @@ var webglext;
         var iTooltipOffset = +12;
         var jTooltipOffset = -12;
         selection.hoveredEvent.changed.on(function () {
-            var hoveredEvent = selection.hoveredEvent.value;
-            if (hoveredEvent) {
-                var iMouse = selection.mousePos.x;
-                var jMouse = selection.mousePos.y;
-                if (webglext.isNumber(iMouse) && webglext.isNumber(jMouse)) {
-                    // Generate application-specific html content, based on which event is hovered
-                    var html = hoveredEvent.label;
-                    tooltip.show(html, iMouse + iTooltipOffset, jMouse + jTooltipOffset);
-                }
-                else {
-                    tooltip.hide();
-                }
-            }
-            else {
-                tooltip.hide();
-            }
+            // var hoveredEvent = selection.hoveredEvent.value;
+            // if ( hoveredEvent ) {
+            //     var iMouse = selection.mousePos.x;
+            //     var jMouse = selection.mousePos.y;
+            //     if ( isNumber( iMouse ) && isNumber( jMouse ) ) {
+            //         // Generate application-specific html content, based on which event is hovered
+            //         var html = hoveredEvent.label;
+            //         tooltip.show( html, iMouse+iTooltipOffset, jMouse+jTooltipOffset );
+            //     }
+            //     else {
+            //         tooltip.hide( );
+            //     }
+            // }
+            // else {
+            //     tooltip.hide( );
+            // }
         });
         selection.mousePos.changed.on(function () {
-            var iMouse = selection.mousePos.x;
-            var jMouse = selection.mousePos.y;
-            if (webglext.isNumber(iMouse) && webglext.isNumber(jMouse)) {
-                tooltip.move(iMouse + iTooltipOffset, jMouse + jTooltipOffset);
-            }
-            else {
-                tooltip.hide();
-            }
+            // var iMouse = selection.mousePos.x;
+            // var jMouse = selection.mousePos.y;
+            // if ( isNumber( iMouse ) && isNumber( jMouse ) ) {
+            //     tooltip.move( iMouse+iTooltipOffset, jMouse+jTooltipOffset );
+            // }
+            // else {
+            //     tooltip.hide( );
+            // }
+            // console.log("mousepos_mousepos" + jMouse + "mousepos_y" + iMouse);
         });
         // Example Input Listeners
         //

@@ -43,7 +43,11 @@
             <li class="spacer">
             </li>
             <li class="toolbar-button">
-                <a id="selected-time-autoplay" href="#" class="fa fa-play"></a>
+                <Button id="selected-time-autoplay" href="#" class="fa fa-play" disabled=true style="color: rgb(5,22,42);
+                text-decoration: none !important;
+                font-size: 24px;
+                padding: 8px;background: transparent;
+    border: transparent;" ></Button>
             </li>
             <li class="spacer">
             </li>
@@ -108,6 +112,7 @@
                             e.data.sharedArrayBuffer);
         initResolver();
         initResolver = null;
+        //e.movie_duration
     });
     await initDone;
     
@@ -126,16 +131,26 @@
                 });
                 sendMediaTimeUpdates(true);
         }
-        else {
+        else if(message === "pause"){
             console.log("playback pause");
             audioController.pause().then(() => { 
                 console.log("playback paused");
                 mediaWorker.postMessage({command: 'pause'});
+                sendMediaTimeUpdates(true);
             });
-            sendMediaTimeUpdates(false);
+           // sendMediaTimeUpdates(false);
+           // video_play_restart();
         }
     }
     
+    function video_play_restart() {
+        mediaWorker.postMessage({command: 'initialize',
+                         audioFile: './data/audio_aac.mp4',
+                         videoFile: './data/mov_bbb.mp4',
+                         canvas: offscreen_canvas},
+                        {transfer: [offscreen_canvas]});
+    }
+
     {
             // Worker setup.
         // function setStatus(message) {
@@ -173,6 +188,7 @@
                 mediaTimeUpdateInterval = null;
             }
         }
+        document.getElementById("selected-time-autoplay").disabled = false;
     </script>
 
 </body>

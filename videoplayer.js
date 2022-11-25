@@ -421,6 +421,9 @@ var webglvideo;
             webglvideo.debugLog("playback stop");
             this.playing = false;
         }
+        seekFile(time) {
+            this.demuxer._seekFile(time);
+        }
         fillDataBuffer() {
             return __awaiter(this, void 0, void 0, function* () {
                 // This method is called from multiple places to ensure the buffer stays
@@ -572,6 +575,12 @@ var webglvideo;
                 });
                 console.assert(VideoDecoder.isConfigSupported(config));
                 this.decoder.configure(config);
+                if (config.movie_duration != "undefined") {
+                    this.movie_duration = config.movie_duration;
+                }
+                else {
+                    this.movie_duration = 0;
+                }
                 this.init_resolver = null;
                 let promise = new Promise((resolver) => this.init_resolver = resolver);
                 this.fillFrameBuffer();
@@ -580,6 +589,7 @@ var webglvideo;
         }
         render(timestamp) {
             webglvideo.debugLog('render(%d)' + timestamp);
+            // console.log("video render (%d)", timestamp);
             let frame = this.chooseFrame(timestamp);
             this.fillFrameBuffer();
             if (frame == null) {
@@ -594,6 +604,9 @@ var webglvideo;
             let minTimeDelta = Number.MAX_VALUE;
             let frameIndex = -1;
             for (let i = 0; i < this.frameBuffer.length; i++) {
+                if (this.frameBuffer[i].timestamp === null) {
+                    this.frameBuffer[i].timestamp = 0;
+                }
                 let time_delta = Math.abs(timestamp - this.frameBuffer[i].timestamp);
                 if (time_delta < minTimeDelta) {
                     minTimeDelta = time_delta;
@@ -602,6 +615,7 @@ var webglvideo;
                 else {
                     break;
                 }
+                //  console.log("this.frameBuffer[i].timestamp_timestamp__", this.frameBuffer[i].timestamp);
             }
             console.assert(frameIndex != -1);
             if (frameIndex > 0)
@@ -643,8 +657,17 @@ var webglvideo;
         frameBufferFull() {
             return this.frameBuffer.length >= FRAME_BUFFER_TARGET_SIZE;
         }
+        seekFile(time) {
+            return __awaiter(this, void 0, void 0, function* () {
+                this.demuxer._seekFile(time);
+            });
+        }
         bufferFrame(frame) {
             webglvideo.debugLog(`bufferFrame(${frame.timestamp})`);
+            //    console.log(`bufferFrame(${frame.timestamp})`);
+            // for (let i = 0; i < this.frameBuffer.length; i++) {
+            //   console.log(`bufferFrame_this.frameBuffer)`, this.frameBuffer[i].timestamp);
+            // }
             this.frameBuffer.push(frame);
         }
         createGlContext(type, canvas) {
@@ -696,7 +719,6 @@ var webglvideo;
             const gl = this.canvasCtx;
             // Upload the frame.
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame);
-            frame.close();
             // Configure and clear the drawing area.
             gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
             gl.clearColor(1.0, 0.0, 0.0, 1.0);
@@ -760,7 +782,8 @@ var webglvideo;
                     codec: this.audioTrack.codec,
                     sampleRate: this.audioTrack.audio.sample_rate,
                     numberOfChannels: this.audioTrack.audio.channel_count,
-                    description: this.source.getAudioSpecificConfig()
+                    description: this.source.getAudioSpecificConfig(),
+                    movie_duration: this.audioTrack.movie_duration
                 };
             }
             else {
@@ -768,7 +791,8 @@ var webglvideo;
                     codec: this.videoTrack.codec,
                     displayWidth: this.videoTrack.track_width,
                     displayHeight: this.videoTrack.track_height,
-                    description: this._getAvcDescription(this.source.getAvccBox())
+                    description: this._getAvcDescription(this.source.getAvccBox()),
+                    movie_duration: this.videoTrack.movie_duration
                 };
             }
         }
@@ -815,6 +839,12 @@ var webglvideo;
                 console.assert(this._pending_read_resolver);
                 this.source.start(this._onSamples.bind(this));
                 return promise;
+            });
+        }
+        _seekFile(time) {
+            return __awaiter(this, void 0, void 0, function* () {
+                console.assert(this.selectedTrack);
+                this.source.seekFile(time, true);
             });
         }
         _onSamples(samples) {
@@ -898,6 +928,12 @@ var webglvideo;
         }
         stop() {
             this.file.stop();
+        }
+        seekFile(time, useRap) {
+            let ii = this.file.seek(time, useRap);
+            let ss = ii + 1;
+            //  this.file.flush();
+            //  this.file.start();
         }
         onSamples(track_id, ref, samples) {
             this._onSamples(samples);

@@ -74,14 +74,14 @@ self.addEventListener('message', async function(e) {
     case 'pause':
       playing = false;
       audioRenderer.pause();
-      await seekFile(0);
+      // await seekFile(0);
 
-      playing = true;
-      updateMediaTime(0,
-        0);
+      // playing = true;
+      // updateMediaTime(0,
+      //   0);
 
-      audioRenderer.play();
-      self.requestAnimationFrame(renderVideo);
+      // audioRenderer.play();
+      // self.requestAnimationFrame(renderVideo);
 
       break;
     case 'update-media-time':

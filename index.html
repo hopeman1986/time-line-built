@@ -136,9 +136,8 @@
             audioController.pause().then(() => { 
                 console.log("playback paused");
                 mediaWorker.postMessage({command: 'pause'});
-                sendMediaTimeUpdates(true);
             });
-           // sendMediaTimeUpdates(false);
+           sendMediaTimeUpdates(false);
            // video_play_restart();
         }
     }

@@ -6032,6 +6032,7 @@ var webglext;
             this._epoch_PMILLIS = 0.5 * (tMin_PMILLIS + tMax_PMILLIS);
             this.start_time_val = this._vMin;
             this.end_time_val = this._vMax;
+            this.ratio_val = 1.0;
         }
         setProperty(tMin_PMILLIS, tMax_PMILLIS) {
             this._epoch_PMILLIS = 0.5 * (tMin_PMILLIS + tMax_PMILLIS);
@@ -6090,6 +6091,11 @@ var webglext;
             this._limitsChanged.fire();
         }
         tZoom(factor, vAnchor) {
+            let ratio = (this.end_time_val - this.start_time_val) / (this._vMax - this._vMin);
+            if (ratio > 10.0 && factor < 1.0)
+                return;
+            if (ratio < 0.1 && factor > 1.0)
+                return;
             this._vMin = vAnchor - factor * (vAnchor - this._vMin);
             this._vMax = vAnchor + factor * (this._vMax - vAnchor);
             if (this._vMin < (-this._epoch_PMILLIS)) {
@@ -6207,33 +6213,44 @@ var webglext;
     function getTickDisplayDataRelative(tickInterval_MILLIS, referenceDate_PMILLIS, isFuturePositive) {
         if (tickInterval_MILLIS <= webglext.minutesToMillis(1)) {
             var tickFormat = function (tickTime_PMILLIS) {
-                var elapsedTime_MILLIS = Math.abs(tickTime_PMILLIS - referenceDate_PMILLIS);
-                var elapsedTime_DAYS = webglext.millisToDays(elapsedTime_MILLIS);
-                var elapsedTime_DAYS_WHOLE = Math.floor(elapsedTime_DAYS);
-                var elapsedTime_HOURS = (elapsedTime_DAYS - elapsedTime_DAYS_WHOLE) * 24;
-                var elapsedTime_HOURS_WHOLE = Math.floor(elapsedTime_HOURS);
-                var elapsedTime_MIN = (elapsedTime_HOURS - elapsedTime_HOURS_WHOLE) * 60;
-                var elapsedTime_MIN_WHOLE = Math.floor(elapsedTime_MIN);
-                var elapsedTime_SEC = (elapsedTime_MIN - elapsedTime_MIN_WHOLE) * 60;
-                var elapsedTime_SEC_WHOLE = Math.floor(elapsedTime_SEC);
-                var elapsedTime_MILLSEC = (elapsedTime_SEC - elapsedTime_SEC_WHOLE) * 100;
-                var elapsedTime_MILLSEC_WHOLE = Math.round(elapsedTime_MILLSEC);
-                if (elapsedTime_SEC_WHOLE >= 60) {
-                    elapsedTime_SEC_WHOLE -= 60;
-                    elapsedTime_MIN_WHOLE += 1;
-                }
-                if (elapsedTime_MIN_WHOLE >= 60) {
-                    elapsedTime_MIN_WHOLE = 0;
-                }
-                var min = elapsedTime_MIN_WHOLE < 10 ? '0' + elapsedTime_MIN_WHOLE : '' + elapsedTime_MIN_WHOLE;
-                var sec = elapsedTime_SEC_WHOLE < 10 ? '0' + elapsedTime_SEC_WHOLE : '' + elapsedTime_SEC_WHOLE;
-                var milli = elapsedTime_MILLSEC_WHOLE < 10 ? '0' + elapsedTime_MILLSEC_WHOLE : '' + elapsedTime_MILLSEC_WHOLE;
                 if (tickInterval_MILLIS <= webglext.secondsToMillis(1)) {
-                    return min + ':' + sec + ':' + milli;
+                    let round_tick = Math.round(tickTime_PMILLIS / 100);
+                    round_tick = round_tick / 10;
+                    return round_tick + "s";
                 }
                 else {
-                    return min + ':' + sec;
+                    let round_tick = Math.round(tickTime_PMILLIS / 1000);
+                    return round_tick + "s";
                 }
+                // var elapsedTime_MILLIS      = Math.abs( tickTime_PMILLIS - referenceDate_PMILLIS );
+                // var elapsedTime_DAYS        = millisToDays( elapsedTime_MILLIS );
+                // var elapsedTime_DAYS_WHOLE  = Math.floor( elapsedTime_DAYS );
+                // var elapsedTime_HOURS       = ( elapsedTime_DAYS - elapsedTime_DAYS_WHOLE ) * 24;
+                // var elapsedTime_HOURS_WHOLE = Math.floor( elapsedTime_HOURS );
+                // var elapsedTime_MIN         = ( elapsedTime_HOURS - elapsedTime_HOURS_WHOLE ) * 60;
+                // var elapsedTime_MIN_WHOLE   = Math.floor( elapsedTime_MIN );
+                // var elapsedTime_SEC         = ( elapsedTime_MIN - elapsedTime_MIN_WHOLE ) * 60;
+                // var elapsedTime_SEC_WHOLE   = Math.floor( elapsedTime_SEC );
+                // var elapsedTime_MILLSEC         = ( elapsedTime_SEC - elapsedTime_SEC_WHOLE ) * 100;
+                // var elapsedTime_MILLSEC_WHOLE   = Math.round( elapsedTime_MILLSEC );
+                // if ( elapsedTime_SEC_WHOLE >= 60 )
+                // {
+                //     elapsedTime_SEC_WHOLE -= 60;
+                //     elapsedTime_MIN_WHOLE += 1;
+                // }
+                // if ( elapsedTime_MIN_WHOLE >= 60 )
+                // {
+                //     elapsedTime_MIN_WHOLE = 0;
+                // }
+                // var min : string = elapsedTime_MIN_WHOLE < 10 ? '0' + elapsedTime_MIN_WHOLE : '' + elapsedTime_MIN_WHOLE;
+                // var sec : string = elapsedTime_SEC_WHOLE < 10 ? '0' + elapsedTime_SEC_WHOLE : '' + elapsedTime_SEC_WHOLE;
+                // var milli: string = elapsedTime_MILLSEC_WHOLE < 10 ? '0' + elapsedTime_MILLSEC_WHOLE : '' + elapsedTime_MILLSEC_WHOLE;
+                // if(tickInterval_MILLIS <= secondsToMillis(1)) {
+                //     return min + ':' + sec + ':' + milli;
+                // }
+                // else {
+                //     return min + ':' + sec;
+                // }
             };
             var prefixFormat = function (timeStruct) {
                 var center_PMILLIS = (timeStruct.end_PMILLIS - timeStruct.start_PMILLIS) / 2 + timeStruct.start_PMILLIS;
